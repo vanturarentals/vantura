@@ -13,8 +13,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Van Rental",
-  description: "Rent a van — choose your pickup and drop-off, book, and pay securely.",
+  title: "Vantura — Premium van hire in London",
+  description:
+    "Premium van hire at affordable rates in London. Pick up and drop off 24/7.",
 };
 
 export default function RootLayout({

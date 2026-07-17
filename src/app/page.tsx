@@ -1,24 +1,45 @@
+import Header from "@/components/Header";
 import SearchForm from "@/components/SearchForm";
 
 export default function Home() {
   return (
-    <main className="flex flex-1 flex-col">
-      <section className="flex flex-1 flex-col items-center justify-center gap-10 bg-gradient-to-b from-zinc-50 to-zinc-100 px-6 py-24 dark:from-black dark:to-zinc-950">
-        <div className="flex max-w-2xl flex-col items-center gap-4 text-center">
-          <span className="rounded-full bg-zinc-900 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-white dark:bg-white dark:text-zinc-900">
-            Van rental, made simple
-          </span>
-          <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
-            Rent a van, your way
-          </h1>
-          <p className="max-w-md text-lg text-zinc-600 dark:text-zinc-400">
-            Choose your pickup and drop-off, pick from our fleet, and pay
-            securely. Your booking is confirmed the moment you pay.
-          </p>
+    <div className="flex min-h-screen flex-col bg-black">
+      <Header />
+
+      {/* Hero */}
+      <section className="relative flex min-h-[70vh] flex-1 items-start overflow-hidden">
+        {/* Cinematic van footage background */}
+        <div className="absolute inset-0 bg-black">
+          <video
+            autoPlay
+            muted
+            loop
+            playsInline
+            poster="/hero-van-poster.jpg"
+            className="h-full w-full object-cover"
+          >
+            <source src="/hero-van.mp4" type="video/mp4" />
+          </video>
+          <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/25 to-black/70" />
         </div>
 
-        <SearchForm />
+        {/* Floating search card */}
+        <div className="relative z-10 mx-auto w-full max-w-6xl px-6 pt-28 pb-16 sm:pt-32">
+          <SearchForm />
+        </div>
       </section>
-    </main>
+
+      {/* Orange tagline band */}
+      <section className="bg-[#ff5f00] px-6 py-14 text-center sm:py-16">
+        <h1 className="text-4xl font-black uppercase leading-none tracking-tight text-black sm:text-5xl md:text-6xl">
+          Big moves
+          <br />
+          made easy.
+        </h1>
+        <p className="mt-5 text-base font-semibold text-black/80 sm:text-lg">
+          Premium van hire at affordable rates in London
+        </p>
+      </section>
+    </div>
   );
 }
