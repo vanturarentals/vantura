@@ -68,9 +68,14 @@ export const emailConfig = {
  * (which has no scheme, so we add `https://`), then localhost for dev.
  */
 export function getAppUrl(): string {
-  const explicit = process.env.NEXT_PUBLIC_APP_URL;
-  const vercel = process.env.VERCEL_PROJECT_PRODUCTION_URL;
+  const explicit = process.env.NEXT_PUBLIC_APP_URL?.trim();
+  const vercel = process.env.VERCEL_PROJECT_PRODUCTION_URL?.trim();
 
-  const raw = explicit ?? (vercel ? `https://${vercel}` : "http://localhost:3000");
+  // Treat an empty/whitespace NEXT_PUBLIC_APP_URL as unset.
+  const raw = explicit
+    ? explicit
+    : vercel
+      ? `https://${vercel}`
+      : "http://localhost:3000";
   return raw.replace(/\/$/, "");
 }
