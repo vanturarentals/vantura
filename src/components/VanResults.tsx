@@ -233,7 +233,11 @@ export default function VanResults() {
                       </p>
                     </div>
                     <Link
-                      href={`/book/${van.id}`}
+                      href={`/book/${van.id}?${new URLSearchParams({
+                        pickupAt,
+                        dropoffAt,
+                        location: location || "London, UK",
+                      }).toString()}`}
                       onClick={() => selectVan(van)}
                       className="rounded bg-brand px-5 py-2.5 text-sm font-semibold text-white hover:bg-brand-hover"
                     >

@@ -1,13 +1,16 @@
 "use client";
 
-import { useSyncExternalStore } from "react";
+import { useCallback, useSyncExternalStore } from "react";
 import {
-  loadDraft,
   saveDraft as persistDraft,
   type BookingDraft,
 } from "@/lib/booking-draft";
 
 const listeners = new Set<() => void>();
+
+/** Cached snapshots so getSnapshot returns a stable reference. */
+let cachedRaw: string | null | undefined;
+let cachedDraft: BookingDraft | null = null;
 
 function subscribe(onStoreChange: () => void) {
   listeners.add(onStoreChange);
@@ -15,7 +18,34 @@ function subscribe(onStoreChange: () => void) {
 }
 
 function emit() {
+  // Invalidate cache so the next getSnapshot re-reads sessionStorage.
+  cachedRaw = undefined;
+  cachedDraft = null;
   for (const listener of listeners) listener();
+}
+
+function readCachedDraft(): BookingDraft | null {
+  if (typeof window === "undefined") return null;
+  let raw: string | null;
+  try {
+    raw = sessionStorage.getItem("vantura_booking_draft");
+  } catch {
+    return null;
+  }
+
+  if (raw === cachedRaw) return cachedDraft;
+
+  cachedRaw = raw;
+  if (!raw) {
+    cachedDraft = null;
+    return null;
+  }
+  try {
+    cachedDraft = JSON.parse(raw) as BookingDraft;
+  } catch {
+    cachedDraft = null;
+  }
+  return cachedDraft;
 }
 
 /** Persist a draft and notify all subscribed booking steps. */
@@ -25,18 +55,17 @@ export function writeDraft(draft: BookingDraft): void {
 }
 
 /**
- * Live booking draft from sessionStorage. SSR snapshot is always null;
- * the client snapshot filters by vanId when provided.
+ * Live booking draft from sessionStorage.
+ * Snapshots are cached so React's useSyncExternalStore gets a stable reference
+ * (returning a new object every read causes an infinite update loop).
  */
 export function useBookingDraft(vanId?: string): BookingDraft | null {
-  return useSyncExternalStore(
-    subscribe,
-    () => {
-      const draft = loadDraft();
-      if (!draft) return null;
-      if (vanId && draft.vanId !== vanId) return null;
-      return draft;
-    },
-    () => null,
-  );
+  const getSnapshot = useCallback(() => {
+    const draft = readCachedDraft();
+    if (!draft) return null;
+    if (vanId && draft.vanId !== vanId) return null;
+    return draft;
+  }, [vanId]);
+
+  return useSyncExternalStore(subscribe, getSnapshot, () => null);
 }
