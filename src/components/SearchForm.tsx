@@ -60,7 +60,9 @@ export default function SearchForm({ defaults, variant = "hero" }: Props) {
   }
 
   const field =
-    "w-full rounded border border-border bg-white px-3 py-2.5 text-sm text-foreground outline-none focus:border-brand";
+    "rounded border border-border bg-white px-3 py-2.5 text-sm text-foreground outline-none focus:border-brand";
+  const dateField = `${field} min-w-0 flex-[2]`;
+  const timeField = `${field} w-[6.5rem] shrink-0 sm:w-[7rem]`;
 
   return (
     <form
@@ -72,7 +74,7 @@ export default function SearchForm({ defaults, variant = "hero" }: Props) {
       }
     >
       <div className="grid grid-cols-1 gap-3 lg:grid-cols-[1fr_1fr_auto] lg:items-end">
-        <label className="flex flex-col gap-1.5">
+        <label className="flex min-w-0 flex-col gap-1.5">
           <span className="text-xs font-semibold text-muted">
             Pick-up date &amp; time
           </span>
@@ -81,12 +83,12 @@ export default function SearchForm({ defaults, variant = "hero" }: Props) {
               type="date"
               value={pickupDate}
               onChange={(e) => setPickupDate(e.target.value)}
-              className={`${field} flex-1`}
+              className={dateField}
             />
             <select
               value={pickupTime}
               onChange={(e) => setPickupTime(e.target.value)}
-              className={field}
+              className={timeField}
               aria-label="Pick-up time"
             >
               {TIME_OPTIONS.map((t) => (
@@ -98,7 +100,7 @@ export default function SearchForm({ defaults, variant = "hero" }: Props) {
           </div>
         </label>
 
-        <label className="flex flex-col gap-1.5">
+        <label className="flex min-w-0 flex-col gap-1.5">
           <span className="text-xs font-semibold text-muted">
             Drop-off date &amp; time
           </span>
@@ -107,12 +109,12 @@ export default function SearchForm({ defaults, variant = "hero" }: Props) {
               type="date"
               value={dropoffDate}
               onChange={(e) => setDropoffDate(e.target.value)}
-              className={`${field} flex-1`}
+              className={dateField}
             />
             <select
               value={dropoffTime}
               onChange={(e) => setDropoffTime(e.target.value)}
-              className={field}
+              className={timeField}
               aria-label="Drop-off time"
             >
               {TIME_OPTIONS.map((t) => (
