@@ -19,6 +19,9 @@ export default function Footer() {
           <Link href="/faq" className="hover:text-brand">
             FAQ
           </Link>
+          <Link href="/manage" className="hover:text-brand">
+            Manage bookings
+          </Link>
           <Link href="/login" className="hover:text-brand">
             Login / Sign up
           </Link>

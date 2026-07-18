@@ -43,6 +43,8 @@ export interface Booking {
   currency: string;
   paymentStatus: PaymentStatus;
   stripeSessionId: string | null;
+  /** Supabase auth user id when booked while logged in. */
+  userId: string | null;
   /** Airtable record creation time — used to expire unpaid holds. */
   createdTime: string;
 }

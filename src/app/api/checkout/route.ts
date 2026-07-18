@@ -5,6 +5,7 @@ import { getVanById, isVanAvailable } from "@/lib/inventory";
 import { attachLicencePhotos, attachStripeSession, createPendingBooking } from "@/lib/bookings";
 import { computeTotalMinor, isValidRange, rentalDays } from "@/lib/pricing";
 import { extrasTotalMinor, getExtra } from "@/lib/extras";
+import { getCurrentUser } from "@/lib/supabase/server";
 import type { CheckoutRequest } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -57,6 +58,9 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  // Optional — guests book without an account.
+  const user = await getCurrentUser();
+
   const startIso = new Date(startAt).toISOString();
   const endIso = new Date(endAt).toISOString();
 
@@ -89,6 +93,7 @@ export async function POST(request: NextRequest) {
       endAt: endIso,
       totalAmountMinor: totalMinor,
       currency,
+      userId: user?.id ?? null,
     });
 
     await attachLicencePhotos(booking.id, {

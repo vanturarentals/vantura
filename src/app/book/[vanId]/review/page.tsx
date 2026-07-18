@@ -1,13 +1,16 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import BookingSteps from "@/components/BookingSteps";
 import BookingSummary from "@/components/BookingSummary";
 import EmbeddedPayment from "@/components/EmbeddedPayment";
+import SignInPrompt from "@/components/SignInPrompt";
 import { getExtra } from "@/lib/extras";
 import { useBookingDraft } from "@/lib/use-booking-draft";
+import { createClient } from "@/lib/supabase/client";
+import { isSupabaseConfigured } from "@/lib/supabase/config";
 
 export default function ReviewPage() {
   const { vanId } = useParams<{ vanId: string }>();
@@ -16,8 +19,20 @@ export default function ReviewPage() {
   const [accepted, setAccepted] = useState(false);
   const [showPayment, setShowPayment] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  // Cache so remounting the payment UI doesn't create duplicate Stripe sessions.
+  const [signedIn, setSignedIn] = useState(false);
   const clientSecretRef = useRef<Promise<string> | null>(null);
+
+  useEffect(() => {
+    if (!isSupabaseConfigured()) return;
+    const supabase = createClient();
+    supabase.auth.getUser().then(({ data }) => setSignedIn(Boolean(data.user)));
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_e, session) => {
+      setSignedIn(Boolean(session?.user));
+    });
+    return () => subscription.unsubscribe();
+  }, []);
 
   const fetchClientSecret = useCallback(async () => {
     if (!draft) throw new Error("Missing booking details.");
@@ -110,6 +125,7 @@ export default function ReviewPage() {
 
           {!showPayment && (
             <>
+              <SignInPrompt signedIn={signedIn} />
               <Section
                 title="Hire dates"
                 href={`/vans?${new URLSearchParams({
@@ -182,6 +198,7 @@ export default function ReviewPage() {
 
           {showPayment && (
             <div className="space-y-4">
+              <SignInPrompt signedIn={signedIn} />
               <p className="text-sm text-muted">
                 Enter your card details below. Payment is processed securely by
                 Stripe — card data never touches Vantura servers.

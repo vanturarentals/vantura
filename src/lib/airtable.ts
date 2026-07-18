@@ -41,6 +41,7 @@ export const FIELDS = {
     stripeSessionId: "Stripe Session ID", // added
     licenceFront: "Licence Front", // added — attachment
     licenceBack: "Licence Back", // added — attachment
+    userId: "User Id", // added — Supabase auth user id
   },
 } as const;
 

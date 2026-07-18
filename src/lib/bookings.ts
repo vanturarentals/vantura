@@ -49,6 +49,10 @@ function mapBooking(record: AirtableRecord): Booking {
       f[FIELDS.booking.paymentStatus] ?? "Pending",
     ) as PaymentStatus),
     stripeSessionId: (f[FIELDS.booking.stripeSessionId] as string) ?? null,
+    userId: (() => {
+      const raw = f[FIELDS.booking.userId];
+      return typeof raw === "string" && raw.trim() ? raw.trim() : null;
+    })(),
     createdTime: record.createdTime,
   };
 }
@@ -106,6 +110,56 @@ export async function getBookingByReference(
   return records.length ? mapBooking(records[0]) : null;
 }
 
+/** Guest manage: reference must match and email must match (case-insensitive). */
+export async function getBookingByReferenceAndEmail(
+  reference: string,
+  email: string,
+): Promise<Booking | null> {
+  const booking = await getBookingByReference(reference);
+  if (!booking) return null;
+  if (booking.email.trim().toLowerCase() !== email.trim().toLowerCase()) {
+    return null;
+  }
+  return booking;
+}
+
+/** Bookings for a signed-in user (by User Id or matching email). */
+export async function listBookingsForUser(input: {
+  userId: string;
+  email: string;
+}): Promise<Booking[]> {
+  const email = escapeFormulaValue(input.email.trim().toLowerCase());
+  const userId = escapeFormulaValue(input.userId);
+  const formula = `OR({${FIELDS.booking.userId}}="${userId}", LOWER({${FIELDS.booking.email}})="${email}")`;
+  const records = await listRecords(airtableConfig.bookingsTable, {
+    filterByFormula: formula,
+  });
+  return records
+    .map(mapBooking)
+    .sort(
+      (a, b) => new Date(b.startAt).getTime() - new Date(a.startAt).getTime(),
+    );
+}
+
+/** Attach User Id on guest bookings that match this email. */
+export async function claimBookingsForEmail(
+  userId: string,
+  email: string,
+): Promise<number> {
+  const formula = `AND(LOWER({${FIELDS.booking.email}})="${escapeFormulaValue(email.trim().toLowerCase())}", {${FIELDS.booking.userId}}=BLANK())`;
+  const records = await listRecords(airtableConfig.bookingsTable, {
+    filterByFormula: formula,
+  });
+  let claimed = 0;
+  for (const record of records) {
+    await updateRecord(airtableConfig.bookingsTable, record.id, {
+      [FIELDS.booking.userId]: userId,
+    });
+    claimed += 1;
+  }
+  return claimed;
+}
+
 export interface NewPendingBooking {
   vanId: string;
   customerName: string;
@@ -116,6 +170,7 @@ export interface NewPendingBooking {
   endAt: string;
   totalAmountMinor: number;
   currency: string;
+  userId?: string | null;
 }
 
 export async function createPendingBooking(
@@ -129,7 +184,7 @@ export async function createPendingBooking(
     reference = generateBookingReference();
   }
 
-  const record = await createRecord(airtableConfig.bookingsTable, {
+  const fields: Record<string, unknown> = {
     [FIELDS.booking.reference]: reference,
     [FIELDS.booking.customerName]: input.customerName,
     [FIELDS.booking.email]: input.email,
@@ -141,7 +196,12 @@ export async function createPendingBooking(
     [FIELDS.booking.dropoffLocation]: input.dropoffLocation,
     [FIELDS.booking.totalAmount]: input.totalAmountMinor / 100,
     [FIELDS.booking.currency]: input.currency,
-  });
+  };
+  if (input.userId) {
+    fields[FIELDS.booking.userId] = input.userId;
+  }
+
+  const record = await createRecord(airtableConfig.bookingsTable, fields);
 
   return mapBooking(record);
 }
