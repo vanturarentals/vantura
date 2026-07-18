@@ -3,8 +3,10 @@ import { getAppUrl, stripeConfig } from "@/lib/config";
 import { getStripe } from "@/lib/stripe";
 import { getVanById, isVanAvailable } from "@/lib/inventory";
 import { attachStripeSession, createPendingBooking } from "@/lib/bookings";
-import { computeTotalMinor, isValidRange } from "@/lib/pricing";
+import { computeTotalMinor, isValidRange, rentalDays } from "@/lib/pricing";
+import { extrasTotalMinor, getExtra } from "@/lib/extras";
 import type { CheckoutRequest } from "@/lib/types";
+import type Stripe from "stripe";
 
 export const dynamic = "force-dynamic";
 
@@ -28,9 +30,9 @@ export async function POST(request: NextRequest) {
     endAt,
     customerName,
     email,
+    extras = [],
   } = body;
 
-  // Validate everything server-side — never trust the client.
   if (!vanId || !startAt || !endAt || !customerName || !email) {
     return NextResponse.json({ error: "Missing required fields." }, { status: 400 });
   }
@@ -41,7 +43,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Invalid email address." }, { status: 400 });
   }
 
-  // Normalise to ISO 8601 for Airtable's dateTime fields.
   const startIso = new Date(startAt).toISOString();
   const endIso = new Date(endAt).toISOString();
 
@@ -51,7 +52,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Van not available." }, { status: 404 });
     }
 
-    // Re-check availability at booking time to reduce double-booking risk.
     if (!(await isVanAvailable(vanId, startIso, endIso))) {
       return NextResponse.json(
         { error: "Sorry, this van was just booked for those dates." },
@@ -59,10 +59,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const totalMinor = computeTotalMinor(van.dailyRateMinor, startIso, endIso);
+    const days = rentalDays(startIso, endIso);
+    const vanTotal = computeTotalMinor(van.dailyRateMinor, startIso, endIso);
+    const extrasTotal = extrasTotalMinor(extras, days);
+    const totalMinor = vanTotal + extrasTotal;
     const currency = stripeConfig.currency;
 
-    // Create a pending hold first, so the van is reserved during checkout.
     const booking = await createPendingBooking({
       vanId: van.id,
       customerName,
@@ -75,31 +77,51 @@ export async function POST(request: NextRequest) {
       currency,
     });
 
+    const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = [
+      {
+        quantity: 1,
+        price_data: {
+          currency,
+          unit_amount: vanTotal,
+          product_data: {
+            name: `${van.name} rental`,
+            description: `${days} day${days === 1 ? "" : "s"} · ${pickupLocation || "Pickup"} → ${dropoffLocation || "Drop-off"}`,
+          },
+        },
+      },
+    ];
+
+    for (const q of extras) {
+      if (q.quantity <= 0) continue;
+      const item = getExtra(q.id);
+      if (!item) continue;
+      const unit =
+        item.chargeType === "per_day" ? item.priceMinor * days : item.priceMinor;
+      lineItems.push({
+        quantity: q.quantity,
+        price_data: {
+          currency,
+          unit_amount: unit,
+          product_data: {
+            name: item.name,
+            description:
+              item.chargeType === "per_day"
+                ? `${formatDays(days)} at ${item.priceMinor / 100}/day`
+                : "Flat fee",
+          },
+        },
+      });
+    }
+
     const appUrl = getAppUrl();
     const stripe = getStripe();
 
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
-      // NOTE: payment_method_types intentionally omitted to enable dynamic
-      // payment methods (configured in the Stripe Dashboard).
       customer_email: email,
-      line_items: [
-        {
-          quantity: 1,
-          price_data: {
-            currency,
-            unit_amount: totalMinor,
-            product_data: {
-              name: `${van.name} rental`,
-              description: `${pickupLocation || "Pickup"} → ${dropoffLocation || "Drop-off"}`,
-            },
-          },
-        },
-      ],
-      // The webhook uses this to find and confirm the booking.
+      line_items: lineItems,
       metadata: { bookingId: booking.id },
       client_reference_id: booking.id,
-      // Expire the session in line with our pending hold window.
       expires_at: Math.floor(Date.now() / 1000) + 30 * 60,
       success_url: `${appUrl}/booking/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${appUrl}/booking/cancelled?booking_id=${booking.id}`,
@@ -115,4 +137,8 @@ export async function POST(request: NextRequest) {
       { status: 500 },
     );
   }
+}
+
+function formatDays(days: number): string {
+  return `${days} day${days === 1 ? "" : "s"}`;
 }

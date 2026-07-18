@@ -54,4 +54,6 @@ export interface CheckoutRequest {
   endAt: string;
   customerName: string;
   email: string;
+  phone?: string;
+  extras?: { id: string; quantity: number }[];
 }

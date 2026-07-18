@@ -1,4 +1,6 @@
 import Link from "next/link";
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
 import { getBookingBySessionId } from "@/lib/bookings";
 import { getVanById } from "@/lib/inventory";
 import { formatMoney } from "@/lib/pricing";
@@ -15,72 +17,126 @@ export default async function SuccessPage({
 
   let booking: Booking | null = null;
   let vanName = "Your van";
+  let imageUrl: string | null = null;
   if (session_id) {
     try {
       booking = await getBookingBySessionId(session_id);
       if (booking?.vanId) {
         const van = await getVanById(booking.vanId);
-        if (van) vanName = van.name;
+        if (van) {
+          vanName = van.name;
+          imageUrl = van.imageUrl;
+        }
       }
     } catch {
       booking = null;
     }
   }
 
+  const reference = booking?.number
+    ? `#${booking.number}`
+    : booking?.id.slice(0, 8).toUpperCase() ?? "—";
+
   return (
-    <main className="mx-auto flex w-full max-w-lg flex-1 flex-col items-center justify-center gap-6 px-6 py-20 text-center">
-      <div className="flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 text-3xl dark:bg-emerald-900/40">
-        ✅
-      </div>
-      <h1 className="text-3xl font-bold">Payment received</h1>
-
-      {booking ? (
-        <div className="w-full rounded-2xl bg-white p-6 text-left shadow-md ring-1 ring-black/5 dark:bg-zinc-900 dark:ring-white/10">
-          <p className="mb-4 text-sm text-zinc-500">
-            Booking reference{" "}
-            <span className="font-mono font-semibold text-zinc-900 dark:text-zinc-100">
-              {booking.number ? `#${booking.number}` : booking.id}
-            </span>
-          </p>
-          <dl className="flex flex-col gap-2 text-sm">
-            <Row label="Van" value={vanName} />
-            <Row label="Pickup" value={`${booking.pickupLocation} · ${formatDate(booking.startAt)}`} />
-            <Row label="Drop-off" value={`${booking.dropoffLocation} · ${formatDate(booking.endAt)}`} />
-            <Row
-              label="Total"
-              value={formatMoney(booking.totalAmountMinor, booking.currency)}
-            />
-            <Row label="Status" value={booking.paymentStatus} />
-          </dl>
-          {booking.paymentStatus === "Pending" && (
-            <p className="mt-4 text-xs text-zinc-500">
-              We&apos;re finalising your confirmation — this page will reflect it
-              shortly once payment settles.
+    <div className="flex min-h-screen flex-col bg-surface">
+      <Header />
+      <main className="mx-auto w-full max-w-6xl flex-1 px-5 py-12">
+        <div className="grid grid-cols-1 gap-10 lg:grid-cols-[1fr_1fr] lg:items-center">
+          <div>
+            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-brand-muted text-2xl text-brand">
+              ✓
+            </div>
+            <h1 className="mt-5 text-3xl font-bold text-brand">
+              Your booking is confirmed!
+            </h1>
+            <p className="mt-2 text-muted">
+              Booking reference{" "}
+              <span className="font-semibold text-foreground">{reference}</span>
             </p>
-          )}
-        </div>
-      ) : (
-        <p className="text-zinc-600 dark:text-zinc-400">
-          Thanks! Your payment was received. A confirmation will arrive by email
-          shortly.
-        </p>
-      )}
 
-      <Link
-        href="/"
-        className="rounded-lg bg-zinc-900 px-5 py-2.5 text-sm font-semibold text-white hover:bg-zinc-700 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-200"
-      >
-        Back to home
-      </Link>
-    </main>
+            {booking && (
+              <dl className="mt-6 space-y-2 rounded-md border border-border bg-white p-5 text-sm">
+                <Row label="Van" value={vanName} />
+                <Row
+                  label="Pick-up"
+                  value={`${booking.pickupLocation || "—"} · ${formatDate(booking.startAt)}`}
+                />
+                <Row
+                  label="Return"
+                  value={`${booking.dropoffLocation || "—"} · ${formatDate(booking.endAt)}`}
+                />
+                <Row
+                  label="Total paid"
+                  value={formatMoney(booking.totalAmountMinor, booking.currency)}
+                />
+                <Row label="Status" value={booking.paymentStatus} />
+              </dl>
+            )}
+
+            <div className="mt-8">
+              <h2 className="text-sm font-bold uppercase tracking-wide text-muted">
+                What&apos;s next?
+              </h2>
+              <ul className="mt-3 space-y-3 text-sm text-foreground">
+                <li className="flex gap-3">
+                  <span className="font-bold text-brand">1.</span>
+                  Bring your driving licence and the card used for payment.
+                </li>
+                <li className="flex gap-3">
+                  <span className="font-bold text-brand">2.</span>
+                  Arrive on time for pick-up — we&apos;re open 24/7.
+                </li>
+                <li className="flex gap-3">
+                  <span className="font-bold text-brand">3.</span>
+                  A confirmation email is on its way (once email is connected).
+                </li>
+              </ul>
+            </div>
+
+            <div className="mt-8 flex flex-wrap gap-3">
+              <Link
+                href="/"
+                className="rounded bg-brand px-5 py-2.5 text-sm font-semibold text-white hover:bg-brand-hover"
+              >
+                Back to home
+              </Link>
+            </div>
+          </div>
+
+          <div className="overflow-hidden rounded-md border border-border bg-white">
+            <div className="aspect-[4/3] bg-surface">
+              {imageUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={imageUrl}
+                  alt={vanName}
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src="/hero-coastal.jpg"
+                  alt="Thanks for choosing Vantura"
+                  className="h-full w-full object-cover"
+                />
+              )}
+            </div>
+            <p className="p-5 text-center text-sm font-medium text-muted">
+              Thanks for choosing Vantura Rentals.
+            </p>
+          </div>
+        </div>
+      </main>
+      <Footer />
+    </div>
   );
 }
 
 function Row({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex justify-between gap-4">
-      <dt className="text-zinc-500">{label}</dt>
-      <dd className="font-medium">{value}</dd>
+      <dt className="text-muted">{label}</dt>
+      <dd className="text-right font-medium">{value}</dd>
     </div>
   );
 }
