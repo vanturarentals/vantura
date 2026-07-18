@@ -65,18 +65,9 @@ export default function Header() {
               Manage bookings
             </Link>
             {user ? (
-              <>
-                <Link href="/account/bookings" className="hover:text-brand">
-                  My bookings
-                </Link>
-                <button
-                  type="button"
-                  onClick={signOut}
-                  className="hover:text-brand"
-                >
-                  Log out
-                </button>
-              </>
+              <button type="button" onClick={signOut} className="hover:text-brand">
+                Log out
+              </button>
             ) : (
               <button
                 type="button"
@@ -96,12 +87,13 @@ export default function Header() {
               Manage
             </Link>
             {user ? (
-              <Link
-                href="/account/bookings"
+              <button
+                type="button"
+                onClick={signOut}
                 className="text-sm font-medium text-muted hover:text-brand"
               >
-                Account
-              </Link>
+                Log out
+              </button>
             ) : (
               <button
                 type="button"
@@ -119,7 +111,7 @@ export default function Header() {
         open={authOpen}
         onClose={() => setAuthOpen(false)}
         initialMode={authMode}
-        nextPath="/account/bookings"
+        nextPath="/manage"
       />
     </>
   );

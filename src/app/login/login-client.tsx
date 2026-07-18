@@ -12,7 +12,7 @@ import { createClient } from "@/lib/supabase/client";
 export default function LoginClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const next = searchParams.get("next") ?? "/account/bookings";
+  const next = searchParams.get("next") ?? "/manage";
   const errorParam = searchParams.get("error");
   const [open, setOpen] = useState(true);
 
@@ -21,7 +21,7 @@ export default function LoginClient() {
     const supabase = createClient();
     supabase.auth.getUser().then(({ data }) => {
       if (data.user) {
-        router.replace(next.startsWith("/") ? next : "/account/bookings");
+        router.replace(next.startsWith("/") ? next : "/manage");
       }
     });
   }, [router, next]);
@@ -74,7 +74,7 @@ export default function LoginClient() {
       <AuthModal
         open={open}
         onClose={() => setOpen(false)}
-        nextPath={next.startsWith("/") ? next : "/account/bookings"}
+        nextPath={next.startsWith("/") ? next : "/manage"}
       />
     </div>
   );

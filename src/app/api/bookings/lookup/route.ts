@@ -40,6 +40,8 @@ export async function POST(request: NextRequest) {
         totalAmountMinor: booking.totalAmountMinor,
         currency: booking.currency,
         customerName: booking.customerName,
+        pickupLocation: booking.pickupLocation,
+        dropoffLocation: booking.dropoffLocation,
       },
     });
   } catch (error) {

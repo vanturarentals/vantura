@@ -18,7 +18,7 @@ interface Props {
 export default function AuthModal({
   open,
   onClose,
-  nextPath = "/account/bookings",
+  nextPath = "/manage",
   initialMode = "login",
 }: Props) {
   const [mode, setMode] = useState<Mode>(initialMode);

@@ -10,8 +10,9 @@ import {
   uploadAttachment,
 } from "./airtable";
 import { airtableConfig } from "./config";
-import type { Booking, PaymentStatus } from "./types";
+import type { Booking, PaymentStatus, RefundStatus } from "./types";
 import { generateBookingReference } from "./booking-reference";
+import { canSelfCancelOnline } from "./support";
 
 /** How long an unpaid (Pending) booking holds a van before it's released. */
 const HOLD_MINUTES = 30;
@@ -26,6 +27,8 @@ function mapBooking(record: AirtableRecord): Booking {
   const amount = Number(f[FIELDS.booking.totalAmount] ?? 0);
   const numberValue = f[FIELDS.booking.number];
   const referenceRaw = f[FIELDS.booking.reference];
+  const refundRaw = f[FIELDS.booking.refundStatus];
+  const cancelRaw = f[FIELDS.booking.cancelRequestedAt];
   return {
     id: record.id,
     number: typeof numberValue === "number" ? numberValue : null,
@@ -36,13 +39,11 @@ function mapBooking(record: AirtableRecord): Booking {
     customerName: String(f[FIELDS.booking.customerName] ?? ""),
     email: String(f[FIELDS.booking.email] ?? ""),
     vanId: firstLinkedId(f[FIELDS.booking.van]),
-    // Linked fields return record ids only; van name is resolved on demand.
     vanName: "",
     pickupLocation: String(f[FIELDS.booking.pickupLocation] ?? ""),
     dropoffLocation: String(f[FIELDS.booking.dropoffLocation] ?? ""),
     startAt: String(f[FIELDS.booking.startAt] ?? ""),
     endAt: String(f[FIELDS.booking.endAt] ?? ""),
-    // Stored in major units in Airtable; expose as pence.
     totalAmountMinor: Math.round(amount * 100),
     currency: String(f[FIELDS.booking.currency] ?? ""),
     paymentStatus: (String(
@@ -53,6 +54,12 @@ function mapBooking(record: AirtableRecord): Booking {
       const raw = f[FIELDS.booking.userId];
       return typeof raw === "string" && raw.trim() ? raw.trim() : null;
     })(),
+    cancelRequestedAt:
+      typeof cancelRaw === "string" && cancelRaw ? cancelRaw : null,
+    refundStatus:
+      typeof refundRaw === "string" && refundRaw
+        ? (refundRaw as RefundStatus)
+        : null,
     createdTime: record.createdTime,
   };
 }
@@ -266,6 +273,49 @@ export async function setPaymentStatus(
   return mapBooking(
     await updateRecord(airtableConfig.bookingsTable, bookingId, {
       [FIELDS.booking.paymentStatus]: status,
+    }),
+  );
+}
+
+/** Whether this auth user may manage the booking. */
+export function userOwnsBooking(
+  booking: Booking,
+  user: { id: string; email?: string | null },
+): boolean {
+  if (booking.userId && booking.userId === user.id) return true;
+  if (
+    user.email &&
+    booking.email.trim().toLowerCase() === user.email.trim().toLowerCase()
+  ) {
+    return true;
+  }
+  return false;
+}
+
+/**
+ * Account self-cancel: Payment Status → Cancelled, stamp cancel time,
+ * mark refund Pending if the hire was Paid.
+ */
+export async function requestBookingCancellation(
+  bookingId: string,
+): Promise<Booking> {
+  const booking = await getBookingById(bookingId);
+  if (!booking) throw new Error("Booking not found.");
+  if (booking.paymentStatus === "Cancelled") {
+    return booking;
+  }
+  if (!canSelfCancelOnline(booking.startAt)) {
+    throw new Error(
+      "Online cancellation is only available when pick-up is at least 48 hours away.",
+    );
+  }
+
+  const wasPaid = booking.paymentStatus === "Paid";
+  return mapBooking(
+    await updateRecord(airtableConfig.bookingsTable, bookingId, {
+      [FIELDS.booking.paymentStatus]: "Cancelled",
+      [FIELDS.booking.cancelRequestedAt]: new Date().toISOString(),
+      [FIELDS.booking.refundStatus]: wasPaid ? "Pending" : "Not required",
     }),
   );
 }

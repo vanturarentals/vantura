@@ -1,5 +1,6 @@
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import { supportConfig } from "@/lib/support";
 
 export default function ContactPage() {
   return (
@@ -18,19 +19,28 @@ export default function ContactPage() {
               Email
             </h2>
             <a
-              href="mailto:hello@vanturarentals.com"
+              href={`mailto:${supportConfig.email}`}
               className="mt-1 block text-lg font-semibold text-brand hover:underline"
             >
-              hello@vanturarentals.com
+              {supportConfig.email}
             </a>
           </div>
           <div>
             <h2 className="text-sm font-bold uppercase tracking-wide text-muted">
               Phone
             </h2>
-            <p className="mt-1 text-lg font-semibold text-foreground">
-              Coming soon
-            </p>
+            {supportConfig.phone ? (
+              <a
+                href={`tel:${supportConfig.phone.replace(/\s+/g, "")}`}
+                className="mt-1 block text-lg font-semibold text-brand hover:underline"
+              >
+                {supportConfig.phoneDisplay || supportConfig.phone}
+              </a>
+            ) : (
+              <p className="mt-1 text-lg font-semibold text-foreground">
+                Coming soon — email us for guest cancellations
+              </p>
+            )}
           </div>
           <div>
             <h2 className="text-sm font-bold uppercase tracking-wide text-muted">

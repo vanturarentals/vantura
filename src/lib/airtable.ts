@@ -42,6 +42,8 @@ export const FIELDS = {
     licenceFront: "Licence Front", // added — attachment
     licenceBack: "Licence Back", // added — attachment
     userId: "User Id", // added — Supabase auth user id
+    cancelRequestedAt: "Cancel Requested At", // added
+    refundStatus: "Refund Status", // added — Not required | Pending | Completed
   },
 } as const;
 

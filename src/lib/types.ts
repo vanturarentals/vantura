@@ -2,6 +2,7 @@
 
 /** Matches the Airtable "Payment Status" single-select exactly. */
 export type PaymentStatus = "Pending" | "Paid" | "Cancelled";
+export type RefundStatus = "Not required" | "Pending" | "Completed";
 
 /**
  * Van "Status" values that take a van out of the rentable fleet entirely.
@@ -45,6 +46,8 @@ export interface Booking {
   stripeSessionId: string | null;
   /** Supabase auth user id when booked while logged in. */
   userId: string | null;
+  cancelRequestedAt: string | null;
+  refundStatus: RefundStatus | null;
   /** Airtable record creation time — used to expire unpaid holds. */
   createdTime: string;
 }
