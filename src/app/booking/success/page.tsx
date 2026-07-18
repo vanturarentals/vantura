@@ -5,12 +5,33 @@ import { getBookingBySessionId } from "@/lib/bookings";
 import { getVanById } from "@/lib/inventory";
 import { formatMoney } from "@/lib/pricing";
 import { formatBookingReference } from "@/lib/booking-reference";
+import { getStripe } from "@/lib/stripe";
+import { confirmPaidBooking } from "@/lib/confirm-booking";
 import type { Booking } from "@/lib/types";
 
 type SearchParams = Promise<{
   session_id?: string;
   payment_intent?: string;
 }>;
+
+/**
+ * If Stripe webhooks are slow/missing, still confirm + email when the customer
+ * lands here after a succeeded PaymentIntent.
+ */
+async function confirmFromPaymentIntent(
+  paymentIntentId: string,
+): Promise<void> {
+  try {
+    const stripe = getStripe();
+    const pi = await stripe.paymentIntents.retrieve(paymentIntentId);
+    if (pi.status !== "succeeded") return;
+    const bookingId = pi.metadata?.bookingId;
+    if (!bookingId) return;
+    await confirmPaidBooking(bookingId, stripe, pi.id);
+  } catch (error) {
+    console.error("[success] confirm from payment_intent failed:", error);
+  }
+}
 
 export default async function SuccessPage({
   searchParams,
@@ -20,6 +41,10 @@ export default async function SuccessPage({
   const { session_id, payment_intent } = await searchParams;
   // PaymentIntent id is stored in the Airtable "Stripe Session ID" field.
   const lookupId = payment_intent || session_id;
+
+  if (payment_intent) {
+    await confirmFromPaymentIntent(payment_intent);
+  }
 
   let booking: Booking | null = null;
   let vanName = "Your van";
@@ -94,7 +119,7 @@ export default async function SuccessPage({
                 </li>
                 <li className="flex gap-3">
                   <span className="font-bold text-brand">3.</span>
-                  A confirmation email is on its way (once email is connected).
+                  Check your email for the confirmation and booking details.
                 </li>
               </ul>
             </div>

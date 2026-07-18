@@ -3,8 +3,7 @@ import type Stripe from "stripe";
 import { stripeConfig } from "@/lib/config";
 import { getStripe } from "@/lib/stripe";
 import { getBookingById, setPaymentStatus } from "@/lib/bookings";
-import { getVanById, isVanAvailable } from "@/lib/inventory";
-import { sendBookingConfirmationEmail, sendNewBookingNotifyEmail } from "@/lib/email";
+import { confirmPaidBooking } from "@/lib/confirm-booking";
 
 // Stripe signature verification needs the raw body + Node crypto.
 export const runtime = "nodejs";
@@ -57,46 +56,6 @@ export async function POST(request: NextRequest) {
   return NextResponse.json({ received: true });
 }
 
-async function confirmBooking(
-  bookingId: string,
-  stripe: Stripe,
-  paymentIntentId: string | null,
-) {
-  const booking = await getBookingById(bookingId);
-  if (!booking) {
-    console.warn(`[webhook] booking ${bookingId} not found`);
-    return;
-  }
-
-  if (booking.paymentStatus === "Paid") return;
-
-  const stillFree = booking.vanId
-    ? await isVanAvailable(
-        booking.vanId,
-        booking.startAt,
-        booking.endAt,
-        booking.id,
-      )
-    : true;
-
-  if (!stillFree) {
-    console.warn(
-      `[webhook] double-booking detected for booking ${booking.id}; refunding`,
-    );
-    if (paymentIntentId) {
-      await stripe.refunds.create({ payment_intent: paymentIntentId });
-    }
-    await setPaymentStatus(booking.id, "Cancelled");
-    return;
-  }
-
-  const confirmed = await setPaymentStatus(booking.id, "Paid");
-  const van = confirmed.vanId ? await getVanById(confirmed.vanId) : null;
-  const vanName = van?.name ?? "Your van";
-  await sendBookingConfirmationEmail(confirmed, vanName);
-  await sendNewBookingNotifyEmail(confirmed, vanName);
-}
-
 async function handlePaymentSucceeded(
   paymentIntent: Stripe.PaymentIntent,
   stripe: Stripe,
@@ -106,7 +65,7 @@ async function handlePaymentSucceeded(
     console.warn("[webhook] payment_intent.succeeded without bookingId");
     return;
   }
-  await confirmBooking(bookingId, stripe, paymentIntent.id);
+  await confirmPaidBooking(bookingId, stripe, paymentIntent.id);
 }
 
 async function handlePaymentCanceled(paymentIntent: Stripe.PaymentIntent) {
@@ -130,7 +89,7 @@ async function handleCheckoutCompleted(
   }
   const pi =
     typeof session.payment_intent === "string" ? session.payment_intent : null;
-  await confirmBooking(bookingId, stripe, pi);
+  await confirmPaidBooking(bookingId, stripe, pi);
 }
 
 async function handleCheckoutExpired(session: Stripe.Checkout.Session) {
