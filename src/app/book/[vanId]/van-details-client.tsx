@@ -23,11 +23,10 @@ export default function VanDetailsClient() {
     if (draft || hydrating.current) return;
     const pickupAt = searchParams.get("pickupAt");
     const dropoffAt = searchParams.get("dropoffAt");
-    const location = searchParams.get("location") || "London, UK";
     if (!pickupAt || !dropoffAt) return;
 
     hydrating.current = true;
-    const query = new URLSearchParams({ pickupAt, dropoffAt, location });
+    const query = new URLSearchParams({ pickupAt, dropoffAt });
     fetch(`/api/availability?${query}`)
       .then(async (r) => {
         const data = await r.json();
@@ -44,8 +43,8 @@ export default function VanDetailsClient() {
           currency: van.currency,
           pickupAt,
           dropoffAt,
-          pickupLocation: location,
-          dropoffLocation: location,
+          pickupLocation: "",
+          dropoffLocation: "",
           differentReturn: false,
           extras: [],
           driver: {

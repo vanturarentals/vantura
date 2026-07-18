@@ -59,11 +59,11 @@ export default async function SuccessPage({
                 <Row label="Van" value={vanName} />
                 <Row
                   label="Pick-up"
-                  value={`${booking.pickupLocation || "—"} · ${formatDate(booking.startAt)}`}
+                  value={formatDate(booking.startAt)}
                 />
                 <Row
                   label="Return"
-                  value={`${booking.dropoffLocation || "—"} · ${formatDate(booking.endAt)}`}
+                  value={formatDate(booking.endAt)}
                 />
                 <Row
                   label="Total paid"

@@ -104,7 +104,7 @@ export default function ExtrasPage() {
             </button>
             <button
               type="button"
-              onClick={() => router.push(`/book/${vanId}/pickup`)}
+              onClick={() => router.push(`/book/${vanId}/driver`)}
               className="rounded bg-brand px-6 py-2.5 text-sm font-semibold text-white hover:bg-brand-hover"
             >
               Continue

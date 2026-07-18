@@ -17,9 +17,6 @@ export default function Header() {
           <Link href="/vans" className="hover:text-brand">
             Vans
           </Link>
-          <Link href="/#locations" className="hover:text-brand">
-            Locations
-          </Link>
           <Link href="/#business" className="hover:text-brand">
             Business
           </Link>

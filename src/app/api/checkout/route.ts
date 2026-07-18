@@ -24,8 +24,8 @@ export async function POST(request: NextRequest) {
 
   const {
     vanId,
-    pickupLocation,
-    dropoffLocation,
+    pickupLocation = "",
+    dropoffLocation = "",
     startAt,
     endAt,
     customerName,
@@ -69,8 +69,8 @@ export async function POST(request: NextRequest) {
       vanId: van.id,
       customerName,
       email,
-      pickupLocation: pickupLocation ?? "",
-      dropoffLocation: dropoffLocation ?? "",
+      pickupLocation,
+      dropoffLocation,
       startAt: startIso,
       endAt: endIso,
       totalAmountMinor: totalMinor,
@@ -85,7 +85,7 @@ export async function POST(request: NextRequest) {
           unit_amount: vanTotal,
           product_data: {
             name: `${van.name} rental`,
-            description: `${days} day${days === 1 ? "" : "s"} · ${pickupLocation || "Pickup"} → ${dropoffLocation || "Drop-off"}`,
+            description: `${days} day${days === 1 ? "" : "s"} hire`,
           },
         },
       },
@@ -116,20 +116,30 @@ export async function POST(request: NextRequest) {
     const appUrl = getAppUrl();
     const stripe = getStripe();
 
+    // Embedded Checkout keeps payment on your site (no redirect away).
+    // payment_method_types omitted → dynamic payment methods from Dashboard.
+    // Stripe SDK v22+ uses ui_mode: 'embedded_page' (was 'embedded').
     const session = await stripe.checkout.sessions.create({
+      ui_mode: "embedded_page",
       mode: "payment",
       customer_email: email,
       line_items: lineItems,
       metadata: { bookingId: booking.id },
       client_reference_id: booking.id,
       expires_at: Math.floor(Date.now() / 1000) + 30 * 60,
-      success_url: `${appUrl}/booking/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${appUrl}/booking/cancelled?booking_id=${booking.id}`,
+      return_url: `${appUrl}/booking/success?session_id={CHECKOUT_SESSION_ID}`,
     });
 
     await attachStripeSession(booking.id, session.id);
 
-    return NextResponse.json({ url: session.url });
+    if (!session.client_secret) {
+      throw new Error("Stripe did not return a client_secret for embedded checkout.");
+    }
+
+    return NextResponse.json({
+      clientSecret: session.client_secret,
+      sessionId: session.id,
+    });
   } catch (error) {
     console.error("[checkout] error:", error);
     return NextResponse.json(

@@ -166,7 +166,7 @@ function DriverForm({ draft }: { draft: BookingDraft }) {
         <div className="flex justify-between pt-2">
           <button
             type="button"
-            onClick={() => router.push(`/book/${draft.vanId}/pickup`)}
+            onClick={() => router.push(`/book/${draft.vanId}/extras`)}
             className="text-sm font-medium text-muted hover:text-brand"
           >
             ← Back

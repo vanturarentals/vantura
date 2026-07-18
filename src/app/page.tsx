@@ -52,14 +52,6 @@ export default function Home() {
         </div>
       </section>
 
-      <section id="locations" className="mx-auto max-w-6xl px-5 py-14">
-        <h2 className="text-2xl font-bold text-brand">Locations</h2>
-        <p className="mt-2 max-w-xl text-muted">
-          Serving London and the surrounding area. Tell us where you want to
-          pick up — we&apos;ll confirm your depot at booking.
-        </p>
-      </section>
-
       <section id="business" className="border-t border-border bg-white">
         <div className="mx-auto max-w-6xl px-5 py-14">
           <h2 className="text-2xl font-bold text-brand">Business</h2>

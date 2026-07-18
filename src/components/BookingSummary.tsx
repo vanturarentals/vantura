@@ -45,7 +45,8 @@ export default function BookingSummary({ draft }: Props) {
           {(draft.pickupLocation || draft.dropoffLocation) && (
             <p className="mt-1 text-xs text-muted">
               {draft.pickupLocation || "Pick-up"}
-              {draft.dropoffLocation && draft.dropoffLocation !== draft.pickupLocation
+              {draft.dropoffLocation &&
+              draft.dropoffLocation !== draft.pickupLocation
                 ? ` → ${draft.dropoffLocation}`
                 : ""}
             </p>
@@ -89,7 +90,6 @@ export default function BookingSummary({ draft }: Props) {
         href={`/vans?${new URLSearchParams({
           pickupAt: draft.pickupAt,
           dropoffAt: draft.dropoffAt,
-          location: draft.pickupLocation,
         }).toString()}`}
         className="mt-4 block text-center text-sm font-medium text-brand hover:underline"
       >

@@ -25,7 +25,6 @@ const SIZE_OPTIONS: VanSize[] = ["Small", "Medium", "Large", "XL & Luton"];
 
 export default function VanResults() {
   const params = useSearchParams();
-  const location = params.get("location") ?? "";
   const pickupAt = params.get("pickupAt") ?? "";
   const dropoffAt = params.get("dropoffAt") ?? "";
 
@@ -38,7 +37,7 @@ export default function VanResults() {
   useEffect(() => {
     if (missingParams) return;
     let cancelled = false;
-    const query = new URLSearchParams({ location, pickupAt, dropoffAt });
+    const query = new URLSearchParams({ pickupAt, dropoffAt });
     fetch(`/api/availability?${query.toString()}`)
       .then(async (r) => {
         const data = await r.json();
@@ -54,7 +53,7 @@ export default function VanResults() {
     return () => {
       cancelled = true;
     };
-  }, [location, pickupAt, dropoffAt, missingParams]);
+  }, [pickupAt, dropoffAt, missingParams]);
 
   const filtered = useMemo(() => {
     if (!vans) return [];
@@ -80,8 +79,8 @@ export default function VanResults() {
       currency: van.currency,
       pickupAt,
       dropoffAt,
-      pickupLocation: location || "London, UK",
-      dropoffLocation: location || "London, UK",
+      pickupLocation: "",
+      dropoffLocation: "",
       differentReturn: false,
       extras: [],
       driver: {
@@ -110,7 +109,7 @@ export default function VanResults() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-border bg-white px-4 py-3">
         <div className="text-sm text-foreground">
-          <span className="font-semibold">{location || "London, UK"}</span>
+          <span className="font-semibold">Your dates</span>
           <span className="text-muted">
             {" "}
             · {formatShort(pickupAt)} → {formatShort(dropoffAt)}
@@ -126,16 +125,12 @@ export default function VanResults() {
       </div>
 
       {editing && (
-        <SearchForm
-          variant="inline"
-          defaults={{ location, pickupAt, dropoffAt }}
-        />
+        <SearchForm variant="inline" defaults={{ pickupAt, dropoffAt }} />
       )}
 
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-[240px_1fr]">
         <aside className="h-fit rounded-md border border-border bg-white p-5">
           <h2 className="text-sm font-bold text-foreground">Filters</h2>
-
           <div className="mt-5">
             <p className="text-xs font-semibold uppercase tracking-wide text-muted">
               Van size
@@ -155,19 +150,6 @@ export default function VanResults() {
                 </li>
               ))}
             </ul>
-          </div>
-
-          <div className="mt-6 opacity-50">
-            <p className="text-xs font-semibold uppercase tracking-wide text-muted">
-              Transmission
-            </p>
-            <p className="mt-2 text-xs text-muted">Coming soon</p>
-          </div>
-          <div className="mt-4 opacity-50">
-            <p className="text-xs font-semibold uppercase tracking-wide text-muted">
-              Fuel type
-            </p>
-            <p className="mt-2 text-xs text-muted">Coming soon</p>
           </div>
         </aside>
 
@@ -236,7 +218,6 @@ export default function VanResults() {
                       href={`/book/${van.id}?${new URLSearchParams({
                         pickupAt,
                         dropoffAt,
-                        location: location || "London, UK",
                       }).toString()}`}
                       onClick={() => selectVan(van)}
                       className="rounded bg-brand px-5 py-2.5 text-sm font-semibold text-white hover:bg-brand-hover"

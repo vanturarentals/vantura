@@ -6,9 +6,8 @@ import { usePathname } from "next/navigation";
 const STEPS = [
   { slug: "", label: "Vehicle" },
   { slug: "extras", label: "Extras" },
-  { slug: "pickup", label: "Pick-up" },
   { slug: "driver", label: "Driver" },
-  { slug: "review", label: "Review" },
+  { slug: "review", label: "Payment" },
 ];
 
 export default function BookingSteps({ vanId }: { vanId: string }) {
