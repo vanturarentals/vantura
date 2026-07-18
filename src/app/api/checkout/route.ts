@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { stripeConfig } from "@/lib/config";
 import { getStripe } from "@/lib/stripe";
 import { getVanById, isVanAvailable } from "@/lib/inventory";
-import { attachStripeSession, createPendingBooking } from "@/lib/bookings";
+import { attachLicencePhotos, attachStripeSession, createPendingBooking } from "@/lib/bookings";
 import { computeTotalMinor, isValidRange, rentalDays } from "@/lib/pricing";
 import { extrasTotalMinor, getExtra } from "@/lib/extras";
 import type { CheckoutRequest } from "@/lib/types";
@@ -11,6 +11,10 @@ export const dynamic = "force-dynamic";
 
 function isValidEmail(email: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
+function isDataUrlImage(value: unknown): value is string {
+  return typeof value === "string" && value.startsWith("data:image/") && value.includes(";base64,");
 }
 
 export async function POST(request: NextRequest) {
@@ -30,6 +34,7 @@ export async function POST(request: NextRequest) {
     customerName,
     email,
     extras = [],
+    licence,
   } = body;
 
   if (!vanId || !startAt || !endAt || !customerName || !email) {
@@ -40,6 +45,16 @@ export async function POST(request: NextRequest) {
   }
   if (!isValidEmail(email)) {
     return NextResponse.json({ error: "Invalid email address." }, { status: 400 });
+  }
+  if (
+    !licence ||
+    !isDataUrlImage(licence.frontDataUrl) ||
+    !isDataUrlImage(licence.backDataUrl)
+  ) {
+    return NextResponse.json(
+      { error: "Driving licence photos are required." },
+      { status: 400 },
+    );
   }
 
   const startIso = new Date(startAt).toISOString();
@@ -74,6 +89,13 @@ export async function POST(request: NextRequest) {
       endAt: endIso,
       totalAmountMinor: totalMinor,
       currency,
+    });
+
+    await attachLicencePhotos(booking.id, {
+      frontDataUrl: licence.frontDataUrl,
+      frontName: licence.frontName || "licence-front.jpg",
+      backDataUrl: licence.backDataUrl,
+      backName: licence.backName || "licence-back.jpg",
     });
 
     const descriptionParts = [`${van.name} · ${formatDays(days)}`];

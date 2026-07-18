@@ -7,6 +7,7 @@ const STEPS = [
   { slug: "", label: "Vehicle" },
   { slug: "extras", label: "Extras" },
   { slug: "driver", label: "Driver" },
+  { slug: "licence", label: "Licence" },
   { slug: "review", label: "Payment" },
 ];
 

@@ -21,6 +21,9 @@ export default function ReviewPage() {
 
   const fetchClientSecret = useCallback(async () => {
     if (!draft) throw new Error("Missing booking details.");
+    if (!draft.licence?.frontDataUrl || !draft.licence?.backDataUrl) {
+      throw new Error("Please upload your driving licence first.");
+    }
     if (!clientSecretRef.current) {
       clientSecretRef.current = (async () => {
         const customerName =
@@ -38,6 +41,7 @@ export default function ReviewPage() {
             email: draft.driver.email,
             phone: draft.driver.phone,
             extras: draft.extras,
+            licence: draft.licence,
           }),
         });
         const data = await res.json();
@@ -57,6 +61,17 @@ export default function ReviewPage() {
         Missing booking details.{" "}
         <Link href="/" className="text-brand underline">
           Start again
+        </Link>
+      </p>
+    );
+  }
+
+  if (!draft.licence?.frontDataUrl || !draft.licence?.backDataUrl) {
+    return (
+      <p className="text-muted">
+        Please upload your driving licence before payment.{" "}
+        <Link href={`/book/${vanId}/licence`} className="text-brand underline">
+          Upload licence
         </Link>
       </p>
     );
@@ -125,6 +140,11 @@ export default function ReviewPage() {
                   current.driver.phone,
                 ]}
               />
+              <Section
+                title="Driving licence"
+                href={`/book/${vanId}/licence`}
+                lines={["Front and back uploaded"]}
+              />
 
               <label className="flex items-start gap-3 rounded-md border border-border bg-white p-4 text-sm">
                 <input
@@ -144,7 +164,7 @@ export default function ReviewPage() {
               <div className="flex justify-between pt-2">
                 <button
                   type="button"
-                  onClick={() => router.push(`/book/${vanId}/driver`)}
+                  onClick={() => router.push(`/book/${vanId}/licence`)}
                   className="text-sm font-medium text-muted hover:text-brand"
                 >
                   ← Back

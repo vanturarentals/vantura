@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 /** 30-minute time slots, 24/7 (00:00 … 23:30). */
 export const TIME_OPTIONS: string[] = (() => {
@@ -22,6 +22,50 @@ function splitDateTime(value?: string): { date: string; time: string } {
   return { date: "", time: "" };
 }
 
+function pad2(n: number): string {
+  return String(n).padStart(2, "0");
+}
+
+function toDateInput(d: Date): string {
+  return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+}
+
+function toTimeInput(d: Date): string {
+  return `${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
+}
+
+/** Round up to the next 30-minute slot (keep if already on :00 / :30). */
+function nearestHalfHour(from = new Date()): Date {
+  const d = new Date(from);
+  d.setSeconds(0, 0);
+  const minutes = d.getMinutes();
+  if (minutes === 0 || minutes === 30) return d;
+  if (minutes < 30) {
+    d.setMinutes(30);
+  } else {
+    d.setHours(d.getHours() + 1);
+    d.setMinutes(0);
+  }
+  return d;
+}
+
+/** Default hire window: nearest half-hour now → +6 hours. */
+function defaultHireWindow(): {
+  pickupDate: string;
+  pickupTime: string;
+  dropoffDate: string;
+  dropoffTime: string;
+} {
+  const pickup = nearestHalfHour();
+  const dropoff = new Date(pickup.getTime() + 6 * 60 * 60 * 1000);
+  return {
+    pickupDate: toDateInput(pickup),
+    pickupTime: toTimeInput(pickup),
+    dropoffDate: toDateInput(dropoff),
+    dropoffTime: toTimeInput(dropoff),
+  };
+}
+
 interface Props {
   defaults?: {
     pickupAt?: string;
@@ -32,14 +76,35 @@ interface Props {
 
 export default function SearchForm({ defaults, variant = "hero" }: Props) {
   const router = useRouter();
-  const p = useMemo(() => splitDateTime(defaults?.pickupAt), [defaults?.pickupAt]);
-  const d = useMemo(() => splitDateTime(defaults?.dropoffAt), [defaults?.dropoffAt]);
+  const fromUrl = useMemo(() => {
+    const p = splitDateTime(defaults?.pickupAt);
+    const d = splitDateTime(defaults?.dropoffAt);
+    if (p.date && d.date) {
+      return {
+        pickupDate: p.date,
+        pickupTime: p.time || "10:00",
+        dropoffDate: d.date,
+        dropoffTime: d.time || "10:00",
+      };
+    }
+    return null;
+  }, [defaults?.pickupAt, defaults?.dropoffAt]);
 
-  const [pickupDate, setPickupDate] = useState(p.date);
-  const [pickupTime, setPickupTime] = useState(p.time || "10:00");
-  const [dropoffDate, setDropoffDate] = useState(d.date);
-  const [dropoffTime, setDropoffTime] = useState(d.time || "10:00");
+  const [pickupDate, setPickupDate] = useState(fromUrl?.pickupDate ?? "");
+  const [pickupTime, setPickupTime] = useState(fromUrl?.pickupTime ?? "10:00");
+  const [dropoffDate, setDropoffDate] = useState(fromUrl?.dropoffDate ?? "");
+  const [dropoffTime, setDropoffTime] = useState(fromUrl?.dropoffTime ?? "10:00");
   const [error, setError] = useState<string | null>(null);
+
+  // Fill "now → +6h" on the client so SSR/hydration stay in sync.
+  useEffect(() => {
+    if (fromUrl) return;
+    const w = defaultHireWindow();
+    setPickupDate(w.pickupDate);
+    setPickupTime(w.pickupTime);
+    setDropoffDate(w.dropoffDate);
+    setDropoffTime(w.dropoffTime);
+  }, [fromUrl]);
 
   function onSubmit(e: React.FormEvent) {
     e.preventDefault();

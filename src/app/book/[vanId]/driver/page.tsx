@@ -95,7 +95,7 @@ function DriverForm({ draft }: { draft: BookingDraft }) {
       return;
     }
     writeDraft({ ...draft, driver });
-    router.push(`/book/${draft.vanId}/review`);
+    router.push(`/book/${draft.vanId}/licence`);
   }
 
   return (

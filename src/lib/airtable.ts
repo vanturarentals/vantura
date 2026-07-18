@@ -38,6 +38,8 @@ export const FIELDS = {
     totalAmount: "Total Amount", // added (currency, major units)
     currency: "Currency", // added
     stripeSessionId: "Stripe Session ID", // added
+    licenceFront: "Licence Front", // added — attachment
+    licenceBack: "Licence Back", // added — attachment
   },
 } as const;
 
@@ -133,6 +135,37 @@ export async function updateRecord<T = Record<string, unknown>>(
       body: JSON.stringify({ fields, typecast: true }),
     }),
   );
+}
+
+/**
+ * Upload a binary attachment (base64) onto an existing record field.
+ * Uses Airtable's content upload API.
+ */
+export async function uploadAttachment(input: {
+  recordId: string;
+  fieldName: string;
+  filename: string;
+  contentType: string;
+  /** Raw base64 without the data:…;base64, prefix. */
+  base64: string;
+}): Promise<void> {
+  const url = `https://content.airtable.com/v0/${airtableConfig.baseId}/${input.recordId}/${encodeURIComponent(input.fieldName)}/uploadAttachment`;
+  const res = await fetch(url, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${airtableConfig.token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      contentType: input.contentType,
+      filename: input.filename,
+      file: input.base64,
+    }),
+  });
+  if (!res.ok) {
+    const body = await res.text();
+    throw new Error(`Airtable attachment upload failed (${res.status}): ${body}`);
+  }
 }
 
 /** Escape a value for safe interpolation into an Airtable formula string. */

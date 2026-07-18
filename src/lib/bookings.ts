@@ -7,6 +7,7 @@ import {
   getRecord,
   listRecords,
   updateRecord,
+  uploadAttachment,
 } from "./airtable";
 import { airtableConfig } from "./config";
 import type { Booking, PaymentStatus } from "./types";
@@ -123,6 +124,50 @@ export async function attachStripeSession(
 ): Promise<void> {
   await updateRecord(airtableConfig.bookingsTable, bookingId, {
     [FIELDS.booking.stripeSessionId]: sessionId,
+  });
+}
+
+function parseDataUrl(dataUrl: string): { contentType: string; base64: string } {
+  const prefix = "data:";
+  const marker = ";base64,";
+  if (!dataUrl.startsWith(prefix) || !dataUrl.includes(marker)) {
+    throw new Error("Invalid licence image payload.");
+  }
+  const markerAt = dataUrl.indexOf(marker);
+  const contentType = dataUrl.slice(prefix.length, markerAt);
+  const base64 = dataUrl.slice(markerAt + marker.length);
+  if (!contentType.startsWith("image/") || !base64) {
+    throw new Error("Invalid licence image payload.");
+  }
+  return { contentType, base64 };
+}
+
+/** Attach compressed licence photos to a booking record. */
+export async function attachLicencePhotos(
+  bookingId: string,
+  licence: {
+    frontDataUrl: string;
+    frontName: string;
+    backDataUrl: string;
+    backName: string;
+  },
+): Promise<void> {
+  const front = parseDataUrl(licence.frontDataUrl);
+  const back = parseDataUrl(licence.backDataUrl);
+
+  await uploadAttachment({
+    recordId: bookingId,
+    fieldName: FIELDS.booking.licenceFront,
+    filename: licence.frontName || "licence-front.jpg",
+    contentType: front.contentType,
+    base64: front.base64,
+  });
+  await uploadAttachment({
+    recordId: bookingId,
+    fieldName: FIELDS.booking.licenceBack,
+    filename: licence.backName || "licence-back.jpg",
+    contentType: back.contentType,
+    base64: back.base64,
   });
 }
 

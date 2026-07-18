@@ -26,6 +26,13 @@ export interface BookingDraft {
     dateOfBirth: string;
     country: string;
   };
+  /** Compressed data-URL previews of licence photos (front/back). */
+  licence?: {
+    frontDataUrl: string;
+    frontName: string;
+    backDataUrl: string;
+    backName: string;
+  };
 }
 
 const KEY = "vantura_booking_draft";

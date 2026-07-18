@@ -56,4 +56,10 @@ export interface CheckoutRequest {
   email: string;
   phone?: string;
   extras?: { id: string; quantity: number }[];
+  licence?: {
+    frontDataUrl: string;
+    frontName: string;
+    backDataUrl: string;
+    backName: string;
+  };
 }

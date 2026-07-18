@@ -16,17 +16,12 @@ export default function Home() {
 
       <section className="relative">
         <div className="relative h-[52vh] min-h-[360px] w-full overflow-hidden sm:h-[58vh]">
-          <video
-            className="h-full w-full object-cover"
-            autoPlay
-            muted
-            loop
-            playsInline
-            poster="/hero-coastal.jpg"
-            aria-label="Van driving on the road"
-          >
-            <source src="/hero-van.mp4" type="video/mp4" />
-          </video>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/hero-van-poster.jpg"
+            alt="White hire van on a London street"
+            className="h-full w-full object-cover object-center"
+          />
           <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/20 to-black/10" />
           <div className="absolute inset-x-0 bottom-0 mx-auto max-w-6xl px-5 pb-28 pt-20 sm:pb-32">
             <h1 className="max-w-xl text-4xl font-extrabold leading-tight tracking-tight text-white sm:text-5xl">
