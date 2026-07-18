@@ -4,6 +4,8 @@ import {
   requestBookingCancellation,
   userOwnsBooking,
 } from "@/lib/bookings";
+import { getVanById } from "@/lib/inventory";
+import { sendBookingCancelledEmail } from "@/lib/email";
 import { getCurrentUser } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
@@ -36,6 +38,9 @@ export async function POST(request: NextRequest) {
     }
 
     const updated = await requestBookingCancellation(bookingId);
+    const van = updated.vanId ? await getVanById(updated.vanId) : null;
+    await sendBookingCancelledEmail(updated, van?.name ?? "Your van");
+
     return NextResponse.json({
       ok: true,
       booking: {
