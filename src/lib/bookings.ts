@@ -11,6 +11,7 @@ import {
 } from "./airtable";
 import { airtableConfig } from "./config";
 import type { Booking, PaymentStatus } from "./types";
+import { generateBookingReference } from "./booking-reference";
 
 /** How long an unpaid (Pending) booking holds a van before it's released. */
 const HOLD_MINUTES = 30;
@@ -24,9 +25,14 @@ function mapBooking(record: AirtableRecord): Booking {
   const f = record.fields;
   const amount = Number(f[FIELDS.booking.totalAmount] ?? 0);
   const numberValue = f[FIELDS.booking.number];
+  const referenceRaw = f[FIELDS.booking.reference];
   return {
     id: record.id,
     number: typeof numberValue === "number" ? numberValue : null,
+    reference:
+      typeof referenceRaw === "string" && referenceRaw.trim()
+        ? referenceRaw.trim().toUpperCase()
+        : null,
     customerName: String(f[FIELDS.booking.customerName] ?? ""),
     email: String(f[FIELDS.booking.email] ?? ""),
     vanId: firstLinkedId(f[FIELDS.booking.van]),
@@ -87,6 +93,19 @@ export async function getBookingBySessionId(
   return records.length ? mapBooking(records[0]) : null;
 }
 
+export async function getBookingByReference(
+  reference: string,
+): Promise<Booking | null> {
+  const clean = reference.replace(/[^0-9A-Za-z]/g, "").toUpperCase();
+  if (!clean) return null;
+  const formula = `{${FIELDS.booking.reference}}="${escapeFormulaValue(clean)}"`;
+  const records = await listRecords(airtableConfig.bookingsTable, {
+    filterByFormula: formula,
+    maxRecords: "1",
+  });
+  return records.length ? mapBooking(records[0]) : null;
+}
+
 export interface NewPendingBooking {
   vanId: string;
   customerName: string;
@@ -102,7 +121,16 @@ export interface NewPendingBooking {
 export async function createPendingBooking(
   input: NewPendingBooking,
 ): Promise<Booking> {
+  // Extremely unlikely collision; retry a couple of times just in case.
+  let reference = generateBookingReference();
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const existing = await getBookingByReference(reference);
+    if (!existing) break;
+    reference = generateBookingReference();
+  }
+
   const record = await createRecord(airtableConfig.bookingsTable, {
+    [FIELDS.booking.reference]: reference,
     [FIELDS.booking.customerName]: input.customerName,
     [FIELDS.booking.email]: input.email,
     [FIELDS.booking.van]: [input.vanId],

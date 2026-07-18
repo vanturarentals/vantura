@@ -10,6 +10,7 @@
  */
 import { emailConfig } from "./config";
 import { formatMoney } from "./pricing";
+import { formatBookingReference } from "./booking-reference";
 import type { Booking } from "./types";
 
 const RESEND_ENDPOINT = "https://api.resend.com/emails";
@@ -18,7 +19,9 @@ export async function sendBookingConfirmationEmail(
   booking: Booking,
   vanName: string,
 ): Promise<void> {
-  const reference = booking.number ? `#${booking.number}` : booking.id;
+  const reference = booking.reference
+    ? formatBookingReference(booking.reference)
+    : booking.id;
 
   if (!emailConfig.isConfigured) {
     console.info(

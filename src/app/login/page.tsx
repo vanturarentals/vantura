@@ -9,8 +9,8 @@ export default function LoginPage() {
       <main className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center px-5 py-16">
         <h1 className="text-3xl font-bold text-brand">Login / Sign up</h1>
         <p className="mt-2 text-muted">
-          Account access is coming soon. You&apos;ll be able to manage bookings
-          and save driver details here.
+          Accounts are coming soon. You&apos;ll be able to save driver details,
+          cards on file, and manage bookings in one place.
         </p>
 
         <div className="mt-8 space-y-3 rounded-md border border-border bg-surface p-6">
@@ -28,6 +28,17 @@ export default function LoginPage() {
           >
             Create account — coming soon
           </button>
+        </div>
+
+        <div className="mt-8 rounded-md border border-border p-5">
+          <h2 className="text-sm font-bold text-foreground">
+            Already have a booking?
+          </h2>
+          <p className="mt-1 text-sm text-muted">
+            Use your 9-character booking reference from the confirmation email
+            (e.g. <span className="font-mono">K7M-2X9-QP4</span>). Full account
+            lookup arrives with login.
+          </p>
         </div>
 
         <Link

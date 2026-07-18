@@ -26,7 +26,8 @@ export const FIELDS = {
     pickupLocations: "Pickup Locations", // added
   },
   booking: {
-    number: "Booking ID", // auto-number, read-only
+    number: "Booking ID", // auto-number, internal/Airtable only
+    reference: "Booking Reference", // added — public 9-char code
     customerName: "Customer Name",
     email: "Customer Email",
     van: "Van", // linked record → Vans

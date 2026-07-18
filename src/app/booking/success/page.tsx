@@ -4,6 +4,7 @@ import Footer from "@/components/Footer";
 import { getBookingBySessionId } from "@/lib/bookings";
 import { getVanById } from "@/lib/inventory";
 import { formatMoney } from "@/lib/pricing";
+import { formatBookingReference } from "@/lib/booking-reference";
 import type { Booking } from "@/lib/types";
 
 type SearchParams = Promise<{
@@ -38,8 +39,8 @@ export default async function SuccessPage({
     }
   }
 
-  const reference = booking?.number
-    ? `#${booking.number}`
+  const reference = booking?.reference
+    ? formatBookingReference(booking.reference)
     : booking?.id.slice(0, 8).toUpperCase() ?? "—";
 
   return (

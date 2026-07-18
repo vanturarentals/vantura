@@ -26,8 +26,10 @@ export interface Van {
 export interface Booking {
   /** Airtable record id (used internally + in Stripe metadata). */
   id: string;
-  /** Airtable auto-number "Booking ID" (human-facing reference). */
+  /** Airtable auto-number "Booking ID" (internal only). */
   number: number | null;
+  /** Public 9-char booking reference (e.g. K7M2X9QP4). */
+  reference: string | null;
   customerName: string;
   email: string;
   vanId: string | null;
