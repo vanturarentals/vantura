@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import AuthModal from "@/components/AuthModal";
+import ProfileCompleteModal from "@/components/ProfileCompleteModal";
 import { createClient } from "@/lib/supabase/client";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import type { User } from "@supabase/supabase-js";
@@ -15,7 +16,6 @@ const NAV = [
 export default function Header() {
   const [user, setUser] = useState<User | null>(null);
   const [authOpen, setAuthOpen] = useState(false);
-  const [authMode, setAuthMode] = useState<"login" | "signup">("login");
 
   useEffect(() => {
     if (!isSupabaseConfigured()) return;
@@ -37,9 +37,11 @@ export default function Header() {
     window.location.href = "/";
   }
 
-  function openAuth(mode: "login" | "signup") {
-    setAuthMode(mode);
-    setAuthOpen(true);
+  async function refreshUser() {
+    if (!isSupabaseConfigured()) return;
+    const supabase = createClient();
+    const { data } = await supabase.auth.getUser();
+    setUser(data.user ?? null);
   }
 
   return (
@@ -65,14 +67,18 @@ export default function Header() {
               Manage bookings
             </Link>
             {user ? (
-              <button type="button" onClick={signOut} className="hover:text-brand">
+              <button
+                type="button"
+                onClick={signOut}
+                className="cursor-pointer hover:text-brand"
+              >
                 Log out
               </button>
             ) : (
               <button
                 type="button"
-                onClick={() => openAuth("login")}
-                className="hover:text-brand"
+                onClick={() => setAuthOpen(true)}
+                className="cursor-pointer hover:text-brand"
               >
                 Log in | Register
               </button>
@@ -90,15 +96,15 @@ export default function Header() {
               <button
                 type="button"
                 onClick={signOut}
-                className="text-sm font-medium text-muted hover:text-brand"
+                className="cursor-pointer text-sm font-medium text-muted hover:text-brand"
               >
                 Log out
               </button>
             ) : (
               <button
                 type="button"
-                onClick={() => openAuth("login")}
-                className="text-sm font-medium text-muted hover:text-brand"
+                onClick={() => setAuthOpen(true)}
+                className="cursor-pointer text-sm font-medium text-muted hover:text-brand"
               >
                 Log in
               </button>
@@ -110,9 +116,9 @@ export default function Header() {
       <AuthModal
         open={authOpen}
         onClose={() => setAuthOpen(false)}
-        initialMode={authMode}
         nextPath="/manage"
       />
+      <ProfileCompleteModal user={user} onSaved={refreshUser} />
     </>
   );
 }

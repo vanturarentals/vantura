@@ -2,6 +2,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import Link from "next/link";
 import GuestManagePanel from "@/components/GuestManagePanel";
+import UnverifiedAccountPanel from "@/components/UnverifiedAccountPanel";
 import {
   claimBookingsForEmail,
   listBookingsForUser,
@@ -12,6 +13,7 @@ import { formatBookingReference } from "@/lib/booking-reference";
 import { canSelfCancelOnline } from "@/lib/support";
 import { getCurrentUser } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
+import { isEmailVerified } from "@/lib/user-profile";
 
 export const dynamic = "force-dynamic";
 
@@ -23,7 +25,9 @@ export default async function ManagePage() {
     <div className="flex min-h-screen flex-col bg-white">
       <Header />
       <main className="mx-auto w-full max-w-3xl flex-1 px-5 py-12">
-        {user?.email ? (
+        {user?.email && !isEmailVerified(user) ? (
+          <UnverifiedAccountPanel email={user.email} />
+        ) : user?.email ? (
           <SignedInBookings userId={user.id} email={user.email} />
         ) : (
           <GuestManagePanel />

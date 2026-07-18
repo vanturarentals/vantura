@@ -4,7 +4,7 @@ import { stripeConfig } from "@/lib/config";
 import { getStripe } from "@/lib/stripe";
 import { getBookingById, setPaymentStatus } from "@/lib/bookings";
 import { getVanById, isVanAvailable } from "@/lib/inventory";
-import { sendBookingConfirmationEmail } from "@/lib/email";
+import { sendBookingConfirmationEmail, sendNewBookingNotifyEmail } from "@/lib/email";
 
 // Stripe signature verification needs the raw body + Node crypto.
 export const runtime = "nodejs";
@@ -92,7 +92,9 @@ async function confirmBooking(
 
   const confirmed = await setPaymentStatus(booking.id, "Paid");
   const van = confirmed.vanId ? await getVanById(confirmed.vanId) : null;
-  await sendBookingConfirmationEmail(confirmed, van?.name ?? "Your van");
+  const vanName = van?.name ?? "Your van";
+  await sendBookingConfirmationEmail(confirmed, vanName);
+  await sendNewBookingNotifyEmail(confirmed, vanName);
 }
 
 async function handlePaymentSucceeded(

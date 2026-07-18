@@ -172,10 +172,57 @@ export async function sendBookingConfirmationEmail(
       <p style="margin:0 0 18px;font-size:14px;line-height:1.55;color:#6b726e;">
         Bring your driving licence and the card used for payment to pick-up.
       </p>
-      <p style="margin:0;">
+      <p style="margin:0 0 18px;">
         <a href="${escapeHtml(appUrl)}/manage"
            style="display:inline-block;background:#1a3932;color:#ffffff;text-decoration:none;font-weight:600;font-size:14px;padding:12px 18px;border-radius:4px;">
           Manage this booking
+        </a>
+      </p>
+      <p style="margin:0;font-size:13px;line-height:1.55;color:#6b726e;">
+        Sign in with <strong>${escapeHtml(booking.email)}</strong> at Manage bookings to view details,
+        or cancel online if pick-up is more than 48 hours away. Guest bookings: look up with your
+        reference and email on the same page.
+      </p>
+    `,
+    ),
+  });
+}
+
+/** Internal alert to the team when a hire is paid. */
+export async function sendNewBookingNotifyEmail(
+  booking: Booking,
+  vanName: string,
+): Promise<void> {
+  const to = emailConfig.notifyAddress.trim();
+  if (!to) return;
+
+  const reference = booking.reference
+    ? formatBookingReference(booking.reference)
+    : booking.id;
+  const total = formatMoney(booking.totalAmountMinor, booking.currency);
+  const appUrl = getAppUrl();
+
+  await sendEmail({
+    to,
+    subject: `New booking — ${reference} · ${vanName}`,
+    html: layout(
+      "New booking received",
+      `
+      <p style="margin:0 0 14px;font-size:15px;line-height:1.55;">
+        A customer has paid and confirmed a hire.
+      </p>
+      <table role="presentation" width="100%" style="font-size:14px;border-collapse:collapse;margin:0 0 18px;">
+        <tr><td style="padding:8px 0;color:#6b726e;">Reference</td><td style="padding:8px 0;text-align:right;font-weight:600;font-family:ui-monospace,monospace;">${escapeHtml(reference)}</td></tr>
+        <tr><td style="padding:8px 0;color:#6b726e;border-top:1px solid #d9ddd9;">Customer</td><td style="padding:8px 0;text-align:right;border-top:1px solid #d9ddd9;">${escapeHtml(booking.customerName)}<br/><span style="color:#6b726e;">${escapeHtml(booking.email)}</span></td></tr>
+        <tr><td style="padding:8px 0;color:#6b726e;border-top:1px solid #d9ddd9;">Van</td><td style="padding:8px 0;text-align:right;font-weight:600;border-top:1px solid #d9ddd9;">${escapeHtml(vanName)}</td></tr>
+        <tr><td style="padding:8px 0;color:#6b726e;border-top:1px solid #d9ddd9;">Pick-up</td><td style="padding:8px 0;text-align:right;border-top:1px solid #d9ddd9;">${escapeHtml(formatWhen(booking.startAt))}<br/><span style="color:#6b726e;">${escapeHtml(booking.pickupLocation || "—")}</span></td></tr>
+        <tr><td style="padding:8px 0;color:#6b726e;border-top:1px solid #d9ddd9;">Return</td><td style="padding:8px 0;text-align:right;border-top:1px solid #d9ddd9;">${escapeHtml(formatWhen(booking.endAt))}<br/><span style="color:#6b726e;">${escapeHtml(booking.dropoffLocation || "—")}</span></td></tr>
+        <tr><td style="padding:8px 0;color:#6b726e;border-top:1px solid #d9ddd9;">Total paid</td><td style="padding:8px 0;text-align:right;font-weight:700;border-top:1px solid #d9ddd9;">${escapeHtml(total)}</td></tr>
+      </table>
+      <p style="margin:0;">
+        <a href="${escapeHtml(appUrl)}/manage"
+           style="display:inline-block;background:#1a3932;color:#ffffff;text-decoration:none;font-weight:600;font-size:14px;padding:12px 18px;border-radius:4px;">
+          Open manage bookings
         </a>
       </p>
     `,

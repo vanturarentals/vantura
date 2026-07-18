@@ -12,6 +12,7 @@ import { formatMoney } from "@/lib/pricing";
 import { formatBookingReference } from "@/lib/booking-reference";
 import { getCurrentUser } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
+import { isEmailVerified } from "@/lib/user-profile";
 import { supportConfig } from "@/lib/support";
 
 export const dynamic = "force-dynamic";
@@ -30,6 +31,9 @@ export default async function ManageBookingDetailPage({
   const user = await getCurrentUser();
   if (!user?.email) {
     redirect(`/login?next=/manage/${bookingId}`);
+  }
+  if (!isEmailVerified(user)) {
+    redirect("/manage");
   }
 
   const booking = await getBookingById(bookingId);

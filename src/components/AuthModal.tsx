@@ -4,36 +4,42 @@ import { useEffect, useState, type FormEvent } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { getAppUrlClient } from "@/lib/app-url";
+import { isEmailVerified } from "@/lib/user-profile";
 
-type Mode = "login" | "signup";
+type Step = "email" | "password" | "verify";
 
 interface Props {
   open: boolean;
   onClose: () => void;
-  /** Where to send the user after a successful OAuth / magic link. */
+  /** Where to send the user after a successful OAuth / verified sign-in. */
   nextPath?: string;
-  initialMode?: Mode;
+  /** @deprecated Unused — login and signup share one flow. */
+  initialMode?: "login" | "signup";
 }
 
 export default function AuthModal({
   open,
   onClose,
   nextPath = "/manage",
-  initialMode = "login",
 }: Props) {
-  const [mode, setMode] = useState<Mode>(initialMode);
+  const [step, setStep] = useState<Step>("email");
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [passwordConfirm, setPasswordConfirm] = useState("");
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
     if (open) {
-      setMode(initialMode);
+      setStep("email");
+      setPassword("");
+      setPasswordConfirm("");
       setMessage(null);
       setError(null);
+      setBusy(false);
     }
-  }, [open, initialMode]);
+  }, [open]);
 
   useEffect(() => {
     if (!open) return;
@@ -49,7 +55,13 @@ export default function AuthModal({
   const configured = isSupabaseConfigured();
   const redirectTo = `${getAppUrlClient()}/auth/callback?next=${encodeURIComponent(nextPath)}`;
 
-  async function continueWithEmail(e: FormEvent) {
+  function finishSignedIn() {
+    onClose();
+    const target = nextPath.startsWith("/") ? nextPath : "/manage";
+    window.location.assign(target);
+  }
+
+  function onEmailContinue(e: FormEvent) {
     e.preventDefault();
     setError(null);
     setMessage(null);
@@ -57,24 +69,127 @@ export default function AuthModal({
       setError("Accounts are not configured yet. You can still book as a guest.");
       return;
     }
-    if (!email.trim()) {
-      setError("Enter your email address.");
+    if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      setError("Enter a valid email address.");
       return;
     }
+    setStep("password");
+  }
+
+  async function onPasswordSubmit(e: FormEvent) {
+    e.preventDefault();
+    setError(null);
+    setMessage(null);
+    if (!configured) {
+      setError("Accounts are not configured yet. You can still book as a guest.");
+      return;
+    }
+    if (password.length < 8) {
+      setError("Password must be at least 8 characters.");
+      return;
+    }
+    if (password !== passwordConfirm) {
+      setError("Passwords do not match.");
+      return;
+    }
+
     setBusy(true);
     try {
       const supabase = createClient();
-      const { error: otpError } = await supabase.auth.signInWithOtp({
-        email: email.trim(),
-        options: {
-          emailRedirectTo: redirectTo,
-          shouldCreateUser: mode === "signup" || mode === "login",
-        },
-      });
-      if (otpError) throw otpError;
-      setMessage("Check your email for a sign-in link.");
+      const trimmed = email.trim();
+
+      const { data: signInData, error: signInError } =
+        await supabase.auth.signInWithPassword({
+          email: trimmed,
+          password,
+        });
+
+      if (!signInError && signInData.user) {
+        if (!isEmailVerified(signInData.user)) {
+          setStep("verify");
+          setMessage(
+            "Please verify your email before using your account. Check your inbox for the link.",
+          );
+          return;
+        }
+        finishSignedIn();
+        return;
+      }
+
+      const invalidLogin =
+        signInError?.message?.toLowerCase().includes("invalid login") ||
+        signInError?.message?.toLowerCase().includes("invalid credentials");
+
+      if (!invalidLogin && signInError) {
+        if (
+          signInError.message.toLowerCase().includes("email not confirmed") ||
+          signInError.message.toLowerCase().includes("not confirmed")
+        ) {
+          setStep("verify");
+          setMessage(
+            "Please verify your email before signing in. Check your inbox for the link.",
+          );
+          return;
+        }
+        throw signInError;
+      }
+
+      const { data: signUpData, error: signUpError } =
+        await supabase.auth.signUp({
+          email: trimmed,
+          password,
+          options: { emailRedirectTo: redirectTo },
+        });
+
+      if (signUpError) {
+        if (
+          signUpError.message.toLowerCase().includes("already") ||
+          signUpError.message.toLowerCase().includes("registered")
+        ) {
+          setError("Incorrect password for this email. Try again.");
+          return;
+        }
+        throw signUpError;
+      }
+
+      if (signUpData.session && signUpData.user && isEmailVerified(signUpData.user)) {
+        finishSignedIn();
+        return;
+      }
+
+      setStep("verify");
+      setMessage(
+        "Account created. Check your email and verify before you can manage bookings.",
+      );
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not send sign-in email.");
+      setError(
+        err instanceof Error ? err.message : "Could not sign in. Please try again.",
+      );
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function resendVerification() {
+    setError(null);
+    setMessage(null);
+    if (!configured || !email.trim()) return;
+    setBusy(true);
+    try {
+      const supabase = createClient();
+      const { error: resendError } = await supabase.auth.resend({
+        type: "signup",
+        email: email.trim(),
+        options: { emailRedirectTo: redirectTo },
+      });
+      if (resendError) throw resendError;
+      setMessage("Verification email sent. Check your inbox.");
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Could not resend verification email.",
+      );
     } finally {
       setBusy(false);
     }
@@ -110,7 +225,7 @@ export default function AuthModal({
       <button
         type="button"
         aria-label="Close"
-        className="absolute inset-0 bg-black/45"
+        className="absolute inset-0 cursor-pointer bg-black/45"
         onClick={onClose}
       />
       <div
@@ -122,7 +237,7 @@ export default function AuthModal({
         <button
           type="button"
           onClick={onClose}
-          className="absolute right-4 top-4 text-xl leading-none text-muted hover:text-foreground"
+          className="absolute right-4 top-4 cursor-pointer text-xl leading-none text-muted hover:text-foreground"
           aria-label="Close dialog"
         >
           ×
@@ -135,77 +250,157 @@ export default function AuthModal({
           Book faster. Travel smarter.
         </h2>
         <p className="mt-2 text-sm text-muted">
-          Access seamless checkouts and easy trip management when you log in or
-          create an account in just a few clicks.
+          {step === "verify"
+            ? "Verify your email to unlock manage bookings and saved details."
+            : step === "password"
+              ? "Choose a password to sign in or create your account."
+              : "Access seamless checkouts and easy trip management when you log in or create an account."}
         </p>
 
-        <form onSubmit={continueWithEmail} className="mt-6 space-y-3">
-          <label className="block space-y-1.5">
-            <span className="text-xs font-semibold text-muted">
-              Your email address
-            </span>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="name@mail.com"
-              autoComplete="email"
-              className="w-full rounded border border-border bg-white px-3 py-2.5 text-sm outline-none focus:border-brand"
-            />
-          </label>
-          <button
-            type="submit"
-            disabled={busy}
-            className="w-full rounded bg-brand px-5 py-3 text-sm font-semibold text-white hover:bg-brand-hover disabled:opacity-60"
-          >
-            {busy ? "Please wait…" : "Continue with email"}
-          </button>
-        </form>
-
-        <div className="my-5 flex items-center gap-3 text-xs font-medium uppercase tracking-wide text-muted">
-          <span className="h-px flex-1 bg-border" />
-          or log in with
-          <span className="h-px flex-1 bg-border" />
-        </div>
-
-        <div className="grid grid-cols-2 gap-3">
-          <button
-            type="button"
-            disabled={busy}
-            onClick={() => continueWithProvider("google")}
-            className="flex items-center justify-center gap-2 rounded border border-border bg-white px-3 py-2.5 text-sm font-semibold hover:bg-surface disabled:opacity-60"
-          >
-            <GoogleIcon />
-            Google
-          </button>
-          <button
-            type="button"
-            disabled={busy}
-            onClick={() => continueWithProvider("apple")}
-            className="flex items-center justify-center gap-2 rounded border border-border bg-white px-3 py-2.5 text-sm font-semibold hover:bg-surface disabled:opacity-60"
-          >
-            <AppleIcon />
-            Apple
-          </button>
-        </div>
-
-        <div className="my-5 flex items-center gap-3 text-xs font-medium uppercase tracking-wide text-muted">
-          <span className="h-px flex-1 bg-border" />
-          {mode === "login" ? "Don't have an account?" : "Already registered?"}
-          <span className="h-px flex-1 bg-border" />
-        </div>
-
-        <button
-          type="button"
-          onClick={() => setMode(mode === "login" ? "signup" : "login")}
-          className="w-full rounded border border-border bg-surface px-5 py-3 text-sm font-semibold text-foreground hover:bg-brand-muted"
-        >
-          {mode === "login" ? "Create account" : "Log in instead"}
-        </button>
-
-        {message && (
-          <p className="mt-4 text-sm text-brand">{message}</p>
+        {step === "email" && (
+          <form onSubmit={onEmailContinue} className="mt-6 space-y-3">
+            <label className="block space-y-1.5">
+              <span className="text-xs font-semibold text-muted">
+                Your email address
+              </span>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="name@mail.com"
+                autoComplete="email"
+                className="w-full rounded border border-border bg-white px-3 py-2.5 text-sm outline-none focus:border-brand"
+              />
+            </label>
+            <button
+              type="submit"
+              disabled={busy}
+              className="w-full cursor-pointer rounded bg-brand px-5 py-3 text-sm font-semibold text-white hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              Continue with email
+            </button>
+          </form>
         )}
+
+        {step === "password" && (
+          <form onSubmit={onPasswordSubmit} className="mt-6 space-y-3">
+            <p className="text-sm text-foreground">
+              <span className="text-muted">Signing in as </span>
+              <span className="font-semibold">{email.trim()}</span>
+              <button
+                type="button"
+                onClick={() => {
+                  setStep("email");
+                  setPassword("");
+                  setPasswordConfirm("");
+                  setError(null);
+                }}
+                className="ml-2 cursor-pointer text-sm font-semibold text-brand hover:underline"
+              >
+                Change
+              </button>
+            </p>
+            <label className="block space-y-1.5">
+              <span className="text-xs font-semibold text-muted">Password</span>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                autoComplete="new-password"
+                minLength={8}
+                className="w-full rounded border border-border bg-white px-3 py-2.5 text-sm outline-none focus:border-brand"
+              />
+            </label>
+            <label className="block space-y-1.5">
+              <span className="text-xs font-semibold text-muted">
+                Confirm password
+              </span>
+              <input
+                type="password"
+                value={passwordConfirm}
+                onChange={(e) => setPasswordConfirm(e.target.value)}
+                autoComplete="new-password"
+                minLength={8}
+                className="w-full rounded border border-border bg-white px-3 py-2.5 text-sm outline-none focus:border-brand"
+              />
+            </label>
+            <p className="text-xs text-muted">
+              New here? We&apos;ll create your account. You&apos;ll need to
+              verify your email before managing bookings.
+            </p>
+            <button
+              type="submit"
+              disabled={busy}
+              className="w-full cursor-pointer rounded bg-brand px-5 py-3 text-sm font-semibold text-white hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {busy ? "Please wait…" : "Continue"}
+            </button>
+          </form>
+        )}
+
+        {step === "verify" && (
+          <div className="mt-6 space-y-4">
+            <p className="rounded-md border border-brand/20 bg-brand-muted/50 p-4 text-sm text-foreground">
+              We sent a verification link to{" "}
+              <span className="font-semibold">{email.trim()}</span>. Open it to
+              activate your account, then come back and sign in.
+            </p>
+            <button
+              type="button"
+              disabled={busy}
+              onClick={resendVerification}
+              className="w-full cursor-pointer rounded border border-border bg-white px-5 py-3 text-sm font-semibold hover:bg-surface disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {busy ? "Sending…" : "Resend verification email"}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setStep("email");
+                setPassword("");
+                setPasswordConfirm("");
+                setError(null);
+                setMessage(null);
+              }}
+              className="w-full cursor-pointer text-sm font-semibold text-brand hover:underline"
+            >
+              Use a different email
+            </button>
+          </div>
+        )}
+
+        {step !== "verify" && (
+          <>
+            <div className="my-5 flex items-center gap-3 text-xs font-medium uppercase tracking-wide text-muted">
+              <span className="h-px flex-1 bg-border" />
+              or continue with
+              <span className="h-px flex-1 bg-border" />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                disabled={busy}
+                onClick={() => continueWithProvider("google")}
+                className="flex cursor-pointer items-center justify-center gap-2 rounded border border-border bg-white px-3 py-2.5 text-sm font-semibold hover:bg-surface disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                <GoogleIcon />
+                Google
+              </button>
+              <button
+                type="button"
+                disabled={busy}
+                onClick={() => continueWithProvider("apple")}
+                className="flex cursor-pointer items-center justify-center gap-2 rounded border border-border bg-white px-3 py-2.5 text-sm font-semibold hover:bg-surface disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                <AppleIcon />
+                Apple
+              </button>
+            </div>
+          </>
+        )}
+
+        {message && <p className="mt-4 text-sm text-brand">{message}</p>}
         {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
 
         <p className="mt-6 text-center text-xs text-muted">
