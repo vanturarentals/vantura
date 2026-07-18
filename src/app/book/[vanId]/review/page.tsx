@@ -163,8 +163,8 @@ export default function ReviewPage() {
           {showPayment && (
             <div className="space-y-4">
               <p className="text-sm text-muted">
-                Pay securely without leaving Vantura. Cards, Apple Pay, Google
-                Pay and more appear based on your Stripe Dashboard settings.
+                Enter your card details below. Payment is processed securely by
+                Stripe — card data never touches Vantura servers.
               </p>
               <EmbeddedPayment fetchClientSecret={fetchClientSecret} />
               <button

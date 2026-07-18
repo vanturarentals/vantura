@@ -16,6 +16,11 @@ function maxDob(): string {
   return d.toISOString().slice(0, 10);
 }
 
+/** Keep digits only so phone confirm compares cleanly. */
+function digitsOnly(value: string): string {
+  return value.replace(/\D/g, "");
+}
+
 export default function DriverPage() {
   const { vanId } = useParams<{ vanId: string }>();
   const draft = useBookingDraft(vanId);
@@ -31,10 +36,11 @@ export default function DriverPage() {
     );
   }
 
+  // No remounting key — a previous `key={email}` remounted on every keystroke.
   return (
     <div>
       <BookingSteps vanId={vanId} />
-      <DriverForm key={draft.driver.email || "new"} draft={draft} />
+      <DriverForm draft={draft} />
     </div>
   );
 }
@@ -42,19 +48,32 @@ export default function DriverPage() {
 function DriverForm({ draft }: { draft: BookingDraft }) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
+  // Local state avoids focus loss when sessionStorage draft updates.
+  const [driver, setDriver] = useState(draft.driver);
+  const [phoneConfirm, setPhoneConfirm] = useState(draft.driver.phone);
+
   const field =
     "w-full rounded border border-border bg-white px-3 py-2.5 text-sm outline-none focus:border-brand";
 
   function updateDriver(patch: Partial<BookingDraft["driver"]>) {
-    writeDraft({
-      ...draft,
-      driver: { ...draft.driver, ...patch },
+    setDriver((prev) => {
+      const next = { ...prev, ...patch };
+      writeDraft({ ...draft, driver: next });
+      return next;
     });
+  }
+
+  function onPhoneChange(value: string) {
+    updateDriver({ phone: digitsOnly(value) });
+  }
+
+  function onPhoneConfirmChange(value: string) {
+    setPhoneConfirm(digitsOnly(value));
   }
 
   function onContinue() {
     setError(null);
-    const { firstName, lastName, email, phone, dateOfBirth } = draft.driver;
+    const { firstName, lastName, email, phone, dateOfBirth } = driver;
     if (!firstName || !lastName || !email || !phone || !dateOfBirth) {
       setError("Please complete all required fields.");
       return;
@@ -63,10 +82,19 @@ function DriverForm({ draft }: { draft: BookingDraft }) {
       setError("Enter a valid email address.");
       return;
     }
+    if (!/^\d{10,15}$/.test(phone)) {
+      setError("Enter a valid phone number (digits only, 10–15 numbers).");
+      return;
+    }
+    if (phone !== phoneConfirm) {
+      setError("Phone numbers do not match.");
+      return;
+    }
     if (dateOfBirth > maxDob()) {
       setError("Drivers must be 21 or over.");
       return;
     }
+    writeDraft({ ...draft, driver });
     router.push(`/book/${draft.vanId}/review`);
   }
 
@@ -83,9 +111,10 @@ function DriverForm({ draft }: { draft: BookingDraft }) {
           <label className="space-y-1.5">
             <span className="text-xs font-semibold text-muted">Title</span>
             <select
-              value={draft.driver.title}
+              value={driver.title}
               onChange={(e) => updateDriver({ title: e.target.value })}
               className={field}
+              autoComplete="honorific-prefix"
             >
               {TITLES.map((t) => (
                 <option key={t} value={t}>
@@ -97,18 +126,22 @@ function DriverForm({ draft }: { draft: BookingDraft }) {
           <label className="space-y-1.5">
             <span className="text-xs font-semibold text-muted">First name</span>
             <input
-              value={draft.driver.firstName}
+              value={driver.firstName}
               onChange={(e) => updateDriver({ firstName: e.target.value })}
               className={field}
+              autoComplete="given-name"
+              name="firstName"
               required
             />
           </label>
           <label className="space-y-1.5">
             <span className="text-xs font-semibold text-muted">Last name</span>
             <input
-              value={draft.driver.lastName}
+              value={driver.lastName}
               onChange={(e) => updateDriver({ lastName: e.target.value })}
               className={field}
+              autoComplete="family-name"
+              name="lastName"
               required
             />
           </label>
@@ -119,23 +152,49 @@ function DriverForm({ draft }: { draft: BookingDraft }) {
             <span className="text-xs font-semibold text-muted">Email</span>
             <input
               type="email"
-              value={draft.driver.email}
+              value={driver.email}
               onChange={(e) => updateDriver({ email: e.target.value })}
               className={field}
+              autoComplete="email"
+              name="email"
+              inputMode="email"
               required
             />
           </label>
           <label className="space-y-1.5">
-            <span className="text-xs font-semibold text-muted">Phone</span>
+            <span className="text-xs font-semibold text-muted">
+              Phone (digits only)
+            </span>
             <input
               type="tel"
-              value={draft.driver.phone}
-              onChange={(e) => updateDriver({ phone: e.target.value })}
+              value={driver.phone}
+              onChange={(e) => onPhoneChange(e.target.value)}
               className={field}
+              autoComplete="tel-national"
+              name="phone"
+              inputMode="numeric"
+              pattern="[0-9]*"
               required
             />
           </label>
         </div>
+
+        <label className="block space-y-1.5">
+          <span className="text-xs font-semibold text-muted">
+            Confirm phone
+          </span>
+          <input
+            type="tel"
+            value={phoneConfirm}
+            onChange={(e) => onPhoneConfirmChange(e.target.value)}
+            className={field}
+            autoComplete="off"
+            name="phoneConfirm"
+            inputMode="numeric"
+            pattern="[0-9]*"
+            required
+          />
+        </label>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <label className="space-y-1.5">
@@ -143,9 +202,11 @@ function DriverForm({ draft }: { draft: BookingDraft }) {
             <input
               type="date"
               max={maxDob()}
-              value={draft.driver.dateOfBirth}
+              value={driver.dateOfBirth}
               onChange={(e) => updateDriver({ dateOfBirth: e.target.value })}
               className={field}
+              autoComplete="bday"
+              name="dateOfBirth"
               required
             />
           </label>
@@ -154,9 +215,11 @@ function DriverForm({ draft }: { draft: BookingDraft }) {
               Country of residence
             </span>
             <input
-              value={draft.driver.country}
+              value={driver.country}
               onChange={(e) => updateDriver({ country: e.target.value })}
               className={field}
+              autoComplete="country-name"
+              name="country"
             />
           </label>
         </div>
@@ -181,7 +244,7 @@ function DriverForm({ draft }: { draft: BookingDraft }) {
         </div>
       </div>
 
-      <BookingSummary draft={draft} />
+      <BookingSummary draft={{ ...draft, driver }} />
     </div>
   );
 }

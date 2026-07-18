@@ -6,21 +6,26 @@ import { getVanById } from "@/lib/inventory";
 import { formatMoney } from "@/lib/pricing";
 import type { Booking } from "@/lib/types";
 
-type SearchParams = Promise<{ session_id?: string }>;
+type SearchParams = Promise<{
+  session_id?: string;
+  payment_intent?: string;
+}>;
 
 export default async function SuccessPage({
   searchParams,
 }: {
   searchParams: SearchParams;
 }) {
-  const { session_id } = await searchParams;
+  const { session_id, payment_intent } = await searchParams;
+  // PaymentIntent id is stored in the Airtable "Stripe Session ID" field.
+  const lookupId = payment_intent || session_id;
 
   let booking: Booking | null = null;
   let vanName = "Your van";
   let imageUrl: string | null = null;
-  if (session_id) {
+  if (lookupId) {
     try {
-      booking = await getBookingBySessionId(session_id);
+      booking = await getBookingBySessionId(lookupId);
       if (booking?.vanId) {
         const van = await getVanById(booking.vanId);
         if (van) {

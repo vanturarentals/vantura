@@ -1,12 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAppUrl, stripeConfig } from "@/lib/config";
+import { stripeConfig } from "@/lib/config";
 import { getStripe } from "@/lib/stripe";
 import { getVanById, isVanAvailable } from "@/lib/inventory";
 import { attachStripeSession, createPendingBooking } from "@/lib/bookings";
 import { computeTotalMinor, isValidRange, rentalDays } from "@/lib/pricing";
 import { extrasTotalMinor, getExtra } from "@/lib/extras";
 import type { CheckoutRequest } from "@/lib/types";
-import type Stripe from "stripe";
 
 export const dynamic = "force-dynamic";
 
@@ -77,68 +76,36 @@ export async function POST(request: NextRequest) {
       currency,
     });
 
-    const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = [
-      {
-        quantity: 1,
-        price_data: {
-          currency,
-          unit_amount: vanTotal,
-          product_data: {
-            name: `${van.name} rental`,
-            description: `${days} day${days === 1 ? "" : "s"} hire`,
-          },
-        },
-      },
-    ];
-
+    const descriptionParts = [`${van.name} · ${formatDays(days)}`];
     for (const q of extras) {
       if (q.quantity <= 0) continue;
       const item = getExtra(q.id);
       if (!item) continue;
-      const unit =
-        item.chargeType === "per_day" ? item.priceMinor * days : item.priceMinor;
-      lineItems.push({
-        quantity: q.quantity,
-        price_data: {
-          currency,
-          unit_amount: unit,
-          product_data: {
-            name: item.name,
-            description:
-              item.chargeType === "per_day"
-                ? `${formatDays(days)} at ${item.priceMinor / 100}/day`
-                : "Flat fee",
-          },
-        },
-      });
+      descriptionParts.push(
+        q.quantity > 1 ? `${item.name} ×${q.quantity}` : item.name,
+      );
     }
 
-    const appUrl = getAppUrl();
     const stripe = getStripe();
-
-    // Embedded Checkout keeps payment on your site (no redirect away).
-    // payment_method_types omitted → dynamic payment methods from Dashboard.
-    // Stripe SDK v22+ uses ui_mode: 'embedded_page' (was 'embedded').
-    const session = await stripe.checkout.sessions.create({
-      ui_mode: "embedded_page",
-      mode: "payment",
-      customer_email: email,
-      line_items: lineItems,
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: totalMinor,
+      currency,
+      receipt_email: email,
+      description: descriptionParts.join(" · "),
       metadata: { bookingId: booking.id },
-      client_reference_id: booking.id,
-      expires_at: Math.floor(Date.now() / 1000) + 30 * 60,
-      return_url: `${appUrl}/booking/success?session_id={CHECKOUT_SESSION_ID}`,
+      payment_method_types: ["card"],
     });
 
-    await attachStripeSession(booking.id, session.id);
+    // Reuse the Airtable "Stripe Session ID" field for the PaymentIntent id.
+    await attachStripeSession(booking.id, paymentIntent.id);
 
-    if (!session.client_secret) {
-      throw new Error("Stripe did not return a client_secret for embedded checkout.");
+    if (!paymentIntent.client_secret) {
+      throw new Error("Stripe did not return a client_secret.");
     }
 
     return NextResponse.json({
-      clientSecret: session.client_secret,
-      sessionId: session.id,
+      clientSecret: paymentIntent.client_secret,
+      paymentIntentId: paymentIntent.id,
     });
   } catch (error) {
     console.error("[checkout] error:", error);

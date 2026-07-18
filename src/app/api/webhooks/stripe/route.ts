@@ -33,18 +33,23 @@ export async function POST(request: NextRequest) {
 
   try {
     switch (event.type) {
+      case "payment_intent.succeeded":
+        await handlePaymentSucceeded(event.data.object, stripe);
+        break;
+      case "payment_intent.canceled":
+        await handlePaymentCanceled(event.data.object);
+        break;
+      // Keep legacy Checkout Session handlers during any in-flight sessions.
       case "checkout.session.completed":
-        await handleCompleted(event.data.object, stripe);
+        await handleCheckoutCompleted(event.data.object, stripe);
         break;
       case "checkout.session.expired":
-        await handleExpired(event.data.object);
+        await handleCheckoutExpired(event.data.object);
         break;
       default:
-        // Ignore unrelated events.
         break;
     }
   } catch (error) {
-    // Returning 500 makes Stripe retry, which is what we want on transient errors.
     console.error(`[webhook] error handling ${event.type}:`, error);
     return NextResponse.json({ error: "Handler error." }, { status: 500 });
   }
@@ -52,34 +57,34 @@ export async function POST(request: NextRequest) {
   return NextResponse.json({ received: true });
 }
 
-async function handleCompleted(
-  session: Stripe.Checkout.Session,
+async function confirmBooking(
+  bookingId: string,
   stripe: Stripe,
+  paymentIntentId: string | null,
 ) {
-  const bookingId = session.metadata?.bookingId ?? session.client_reference_id;
-  if (!bookingId) {
-    console.warn("[webhook] completed session without bookingId");
-    return;
-  }
-
   const booking = await getBookingById(bookingId);
   if (!booking) {
     console.warn(`[webhook] booking ${bookingId} not found`);
     return;
   }
 
-  // Idempotency: Stripe may deliver the same event more than once.
   if (booking.paymentStatus === "Paid") return;
 
-  // Final guard against a race where another payment confirmed first.
   const stillFree = booking.vanId
-    ? await isVanAvailable(booking.vanId, booking.startAt, booking.endAt, booking.id)
+    ? await isVanAvailable(
+        booking.vanId,
+        booking.startAt,
+        booking.endAt,
+        booking.id,
+      )
     : true;
 
   if (!stillFree) {
-    console.warn(`[webhook] double-booking detected for booking ${booking.id}; refunding`);
-    if (typeof session.payment_intent === "string") {
-      await stripe.refunds.create({ payment_intent: session.payment_intent });
+    console.warn(
+      `[webhook] double-booking detected for booking ${booking.id}; refunding`,
+    );
+    if (paymentIntentId) {
+      await stripe.refunds.create({ payment_intent: paymentIntentId });
     }
     await setPaymentStatus(booking.id, "Cancelled");
     return;
@@ -90,12 +95,47 @@ async function handleCompleted(
   await sendBookingConfirmationEmail(confirmed, van?.name ?? "Your van");
 }
 
-async function handleExpired(session: Stripe.Checkout.Session) {
+async function handlePaymentSucceeded(
+  paymentIntent: Stripe.PaymentIntent,
+  stripe: Stripe,
+) {
+  const bookingId = paymentIntent.metadata?.bookingId;
+  if (!bookingId) {
+    console.warn("[webhook] payment_intent.succeeded without bookingId");
+    return;
+  }
+  await confirmBooking(bookingId, stripe, paymentIntent.id);
+}
+
+async function handlePaymentCanceled(paymentIntent: Stripe.PaymentIntent) {
+  const bookingId = paymentIntent.metadata?.bookingId;
+  if (!bookingId) return;
+
+  const booking = await getBookingById(bookingId);
+  if (booking && booking.paymentStatus === "Pending") {
+    await setPaymentStatus(booking.id, "Cancelled");
+  }
+}
+
+async function handleCheckoutCompleted(
+  session: Stripe.Checkout.Session,
+  stripe: Stripe,
+) {
+  const bookingId = session.metadata?.bookingId ?? session.client_reference_id;
+  if (!bookingId) {
+    console.warn("[webhook] completed session without bookingId");
+    return;
+  }
+  const pi =
+    typeof session.payment_intent === "string" ? session.payment_intent : null;
+  await confirmBooking(bookingId, stripe, pi);
+}
+
+async function handleCheckoutExpired(session: Stripe.Checkout.Session) {
   const bookingId = session.metadata?.bookingId ?? session.client_reference_id;
   if (!bookingId) return;
 
   const booking = await getBookingById(bookingId);
-  // Only release holds that never got paid.
   if (booking && booking.paymentStatus === "Pending") {
     await setPaymentStatus(booking.id, "Cancelled");
   }

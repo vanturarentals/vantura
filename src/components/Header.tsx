@@ -1,5 +1,11 @@
 import Link from "next/link";
 
+const NAV = [
+  { href: "/contact", label: "Contact Us" },
+  { href: "/faq", label: "FAQ" },
+  { href: "/login", label: "Login / Sign up" },
+];
+
 export default function Header() {
   return (
     <header className="sticky top-0 z-30 border-b border-border bg-white/95 backdrop-blur">
@@ -14,22 +20,18 @@ export default function Header() {
         </Link>
 
         <nav className="hidden items-center gap-7 text-sm font-medium text-foreground md:flex">
-          <Link href="/vans" className="hover:text-brand">
-            Vans
-          </Link>
-          <Link href="/#business" className="hover:text-brand">
-            Business
-          </Link>
-          <Link href="/faq" className="hover:text-brand">
-            Help
-          </Link>
+          {NAV.map((item) => (
+            <Link key={item.href} href={item.href} className="hover:text-brand">
+              {item.label}
+            </Link>
+          ))}
         </nav>
 
         <Link
-          href="/faq"
+          href="/login"
           className="text-sm font-medium text-muted hover:text-brand md:hidden"
         >
-          Help
+          Login
         </Link>
       </div>
     </header>

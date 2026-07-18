@@ -16,20 +16,22 @@ export default function Home() {
 
       <section className="relative">
         <div className="relative h-[52vh] min-h-[360px] w-full overflow-hidden sm:h-[58vh]">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/hero-coastal.jpg"
-            alt="Van on the road"
+          <video
             className="h-full w-full object-cover"
-          />
+            autoPlay
+            muted
+            loop
+            playsInline
+            poster="/hero-coastal.jpg"
+            aria-label="Van driving on the road"
+          >
+            <source src="/hero-van.mp4" type="video/mp4" />
+          </video>
           <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/20 to-black/10" />
           <div className="absolute inset-x-0 bottom-0 mx-auto max-w-6xl px-5 pb-28 pt-20 sm:pb-32">
             <h1 className="max-w-xl text-4xl font-extrabold leading-tight tracking-tight text-white sm:text-5xl">
               Space to move your world.
             </h1>
-            <p className="mt-3 max-w-md text-base text-white/85 sm:text-lg">
-              Premium van hire at affordable rates in London.
-            </p>
           </div>
         </div>
 
@@ -49,16 +51,6 @@ export default function Home() {
               <p className="text-sm leading-relaxed text-muted">{item.body}</p>
             </div>
           ))}
-        </div>
-      </section>
-
-      <section id="business" className="border-t border-border bg-white">
-        <div className="mx-auto max-w-6xl px-5 py-14">
-          <h2 className="text-2xl font-bold text-brand">Business</h2>
-          <p className="mt-2 max-w-xl text-muted">
-            Need vans for your team? Get in touch for flexible business hire —
-            coming soon.
-          </p>
         </div>
       </section>
 

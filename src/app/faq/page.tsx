@@ -26,9 +26,9 @@ export default function FaqPage() {
     <div className="flex min-h-screen flex-col bg-white">
       <Header />
       <main className="mx-auto w-full max-w-3xl flex-1 px-5 py-12">
-        <h1 className="text-3xl font-bold text-brand">Help &amp; FAQ</h1>
+        <h1 className="text-3xl font-bold text-brand">FAQ</h1>
         <p className="mt-2 text-muted">
-          Answers to common questions. More detail coming soon.
+          Answers to common questions. You can update these anytime.
         </p>
 
         <div className="mt-10 divide-y divide-border">
@@ -40,8 +40,11 @@ export default function FaqPage() {
           ))}
         </div>
 
-        <Link href="/" className="mt-10 inline-block font-semibold text-brand hover:underline">
-          ← Back to home
+        <Link
+          href="/contact"
+          className="mt-10 inline-block font-semibold text-brand hover:underline"
+        >
+          Still need help? Contact us →
         </Link>
       </main>
       <Footer />
