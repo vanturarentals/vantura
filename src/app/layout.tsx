@@ -1,11 +1,37 @@
 import type { Metadata } from "next";
-import { Plus_Jakarta_Sans } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 
-const jakarta = Plus_Jakarta_Sans({
-  variable: "--font-jakarta",
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800"],
+const alteHaas = localFont({
+  src: [
+    {
+      path: "../fonts/AlteHaasGroteskRegular.ttf",
+      weight: "400",
+      style: "normal",
+    },
+    {
+      path: "../fonts/AlteHaasGroteskRegular.ttf",
+      weight: "500",
+      style: "normal",
+    },
+    {
+      path: "../fonts/AlteHaasGroteskBold.ttf",
+      weight: "600",
+      style: "normal",
+    },
+    {
+      path: "../fonts/AlteHaasGroteskBold.ttf",
+      weight: "700",
+      style: "normal",
+    },
+    {
+      path: "../fonts/AlteHaasGroteskBold.ttf",
+      weight: "800",
+      style: "normal",
+    },
+  ],
+  variable: "--font-alte-haas",
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -20,7 +46,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${jakarta.variable} h-full antialiased`}>
+    <html lang="en" className={`${alteHaas.variable} h-full antialiased`}>
       <body className="flex min-h-full flex-col font-sans">{children}</body>
     </html>
   );
