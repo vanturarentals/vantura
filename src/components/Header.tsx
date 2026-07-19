@@ -48,10 +48,11 @@ export default function Header() {
   return (
     <>
       <header className="sticky top-0 z-30 border-b border-border bg-white">
-        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-5">
+        <div className="mx-auto flex h-20 max-w-6xl items-center justify-between gap-4 px-5">
           <Link href="/" className="shrink-0">
-            <span className="wordmark text-lg">
-              vantura <span>rentals</span>
+            <span className="wordmark text-xl sm:text-2xl">
+              vantura
+              <span>rentals</span>
             </span>
           </Link>
 

@@ -125,8 +125,6 @@ export default function SearchForm({ defaults, variant = "hero" }: Props) {
   }
 
   const isHero = variant === "hero";
-  const dateField = "field min-w-0 flex-[2]";
-  const timeField = "field w-[6.5rem] shrink-0 sm:w-[7rem]";
 
   return (
     <form
@@ -138,53 +136,22 @@ export default function SearchForm({ defaults, variant = "hero" }: Props) {
       }
     >
       <div className="grid grid-cols-1 gap-3 lg:grid-cols-[1fr_1fr_auto] lg:items-end">
-        <label className="flex min-w-0 flex-col gap-1.5">
-          <span className="field-label">Pick-up</span>
-          <div className="flex gap-2">
-            <input
-              type="date"
-              value={pickupDate}
-              onChange={(e) => setPickupDate(e.target.value)}
-              className={dateField}
-            />
-            <select
-              value={pickupTime}
-              onChange={(e) => setPickupTime(e.target.value)}
-              className={timeField}
-              aria-label="Pick-up time"
-            >
-              {TIME_OPTIONS.map((t) => (
-                <option key={t} value={t}>
-                  {t}
-                </option>
-              ))}
-            </select>
-          </div>
-        </label>
-
-        <label className="flex min-w-0 flex-col gap-1.5">
-          <span className="field-label">Return</span>
-          <div className="flex gap-2">
-            <input
-              type="date"
-              value={dropoffDate}
-              onChange={(e) => setDropoffDate(e.target.value)}
-              className={dateField}
-            />
-            <select
-              value={dropoffTime}
-              onChange={(e) => setDropoffTime(e.target.value)}
-              className={timeField}
-              aria-label="Return time"
-            >
-              {TIME_OPTIONS.map((t) => (
-                <option key={t} value={t}>
-                  {t}
-                </option>
-              ))}
-            </select>
-          </div>
-        </label>
+        <DateTimeField
+          label="Pick-up"
+          date={pickupDate}
+          time={pickupTime}
+          onDateChange={setPickupDate}
+          onTimeChange={setPickupTime}
+          timeAriaLabel="Pick-up time"
+        />
+        <DateTimeField
+          label="Return"
+          date={dropoffDate}
+          time={dropoffTime}
+          onDateChange={setDropoffDate}
+          onTimeChange={setDropoffTime}
+          timeAriaLabel="Return time"
+        />
 
         <button type="submit" className="btn-primary gap-2 lg:self-end">
           Search
@@ -196,5 +163,72 @@ export default function SearchForm({ defaults, variant = "hero" }: Props) {
 
       {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
     </form>
+  );
+}
+
+function DateTimeField({
+  label,
+  date,
+  time,
+  onDateChange,
+  onTimeChange,
+  timeAriaLabel,
+}: {
+  label: string;
+  date: string;
+  time: string;
+  onDateChange: (value: string) => void;
+  onTimeChange: (value: string) => void;
+  timeAriaLabel: string;
+}) {
+  return (
+    <label className="flex min-w-0 flex-col gap-1.5">
+      <span className="field-label flex items-center gap-1.5">
+        <CalendarIcon />
+        {label}
+      </span>
+      <div className="flex min-w-0 items-stretch gap-2">
+        <div className="min-w-[11rem] flex-[2.2] sm:min-w-[13rem]">
+          <input
+            type="date"
+            value={date}
+            onChange={(e) => onDateChange(e.target.value)}
+            className="field w-full [color-scheme:light]"
+          />
+        </div>
+        <div className="w-[5.75rem] shrink-0 sm:w-[6.25rem]">
+          <select
+            value={time}
+            onChange={(e) => onTimeChange(e.target.value)}
+            className="field w-full"
+            aria-label={timeAriaLabel}
+          >
+            {TIME_OPTIONS.map((t) => (
+              <option key={t} value={t}>
+                {t}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+    </label>
+  );
+}
+
+function CalendarIcon() {
+  return (
+    <svg
+      width="12"
+      height="12"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      className="text-muted"
+      aria-hidden
+    >
+      <rect x="3" y="5" width="18" height="16" rx="2" />
+      <path d="M3 10h18M8 3v4M16 3v4" />
+    </svg>
   );
 }

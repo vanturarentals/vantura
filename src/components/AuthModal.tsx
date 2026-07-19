@@ -243,7 +243,10 @@ export default function AuthModal({
           ×
         </button>
 
-        <p className="wordmark text-base">vantura <span>rentals</span></p>
+        <p className="wordmark text-base">
+          vantura
+          <span>rentals</span>
+        </p>
         <h2
           id="auth-modal-title"
           className="mt-4 pr-8 text-2xl font-extrabold tracking-tight text-brand"

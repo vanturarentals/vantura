@@ -49,6 +49,7 @@ button:not(:disabled),
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
+  min-height: 2.625rem;
   border-radius: var(--radius);
   background: var(--brand);
   padding: 0.625rem 1.25rem;
@@ -137,6 +138,7 @@ button:not(:disabled),
 
 .field {
   width: 100%;
+  min-height: 2.625rem;
   border-radius: var(--radius);
   border: 1px solid var(--border);
   background: #fff;
@@ -145,6 +147,11 @@ button:not(:disabled),
   color: var(--foreground);
   outline: none;
   transition: border-color 150ms ease;
+}
+
+input[type="date"].field {
+  min-width: 0;
+  flex: 1 1 auto;
 }
 
 .field:focus {
@@ -162,14 +169,27 @@ button:not(:disabled),
 }
 
 .wordmark {
+  display: inline-flex;
+  flex-direction: column;
   font-weight: 800;
   letter-spacing: -0.02em;
-  line-height: 1;
+  line-height: 1.05;
   color: var(--brand);
 }
 
 .wordmark span {
   font-weight: 500;
+  font-size: 0.72em;
+  letter-spacing: 0.01em;
+}
+
+.wordmark-inline {
+  display: inline;
+  flex-direction: unset;
+}
+
+.wordmark-inline span {
+  font-size: inherit;
 }
 
 .wordmark-on-dark,
