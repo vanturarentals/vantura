@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 
-/** Original UI font — used for digits via the font stack + Alte Haas unicode-range. */
+/** Original UI font — used for digits via the font stack + Panton unicode-range. */
 const jakarta = Plus_Jakarta_Sans({
   variable: "--font-jakarta",
   subsets: ["latin"],

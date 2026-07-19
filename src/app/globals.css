@@ -1,9 +1,21 @@
 @import "tailwindcss";
 
-/* Alte Haas for letters — digits excluded so Plus Jakarta handles numbers. */
+/*
+  Panton for letters — digits excluded so Plus Jakarta handles numbers.
+  Light = body, Black = headings/UI emphasis, Narrow Black = wordmark.
+*/
 @font-face {
-  font-family: "Alte Haas Grotesk";
-  src: url("/fonts/AlteHaasGroteskRegular.ttf") format("truetype");
+  font-family: "Panton";
+  src: url("/fonts/PantonDemo-Light.otf") format("opentype");
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0000-002F, U+003A-10FFFF;
+}
+
+@font-face {
+  font-family: "Panton";
+  src: url("/fonts/PantonDemo-Light.otf") format("opentype");
   font-weight: 400;
   font-style: normal;
   font-display: swap;
@@ -11,8 +23,8 @@
 }
 
 @font-face {
-  font-family: "Alte Haas Grotesk";
-  src: url("/fonts/AlteHaasGroteskRegular.ttf") format("truetype");
+  font-family: "Panton";
+  src: url("/fonts/PantonDemo-Light.otf") format("opentype");
   font-weight: 500;
   font-style: normal;
   font-display: swap;
@@ -20,8 +32,35 @@
 }
 
 @font-face {
-  font-family: "Alte Haas Grotesk";
-  src: url("/fonts/AlteHaasGroteskBold.ttf") format("truetype");
+  font-family: "Panton";
+  src: url("/fonts/PantonDemo-LightItalic.otf") format("opentype");
+  font-weight: 300;
+  font-style: italic;
+  font-display: swap;
+  unicode-range: U+0000-002F, U+003A-10FFFF;
+}
+
+@font-face {
+  font-family: "Panton";
+  src: url("/fonts/PantonDemo-LightItalic.otf") format("opentype");
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+  unicode-range: U+0000-002F, U+003A-10FFFF;
+}
+
+@font-face {
+  font-family: "Panton";
+  src: url("/fonts/PantonDemo-LightItalic.otf") format("opentype");
+  font-weight: 500;
+  font-style: italic;
+  font-display: swap;
+  unicode-range: U+0000-002F, U+003A-10FFFF;
+}
+
+@font-face {
+  font-family: "Panton";
+  src: url("/fonts/PantonDemo-Black.otf") format("opentype");
   font-weight: 600;
   font-style: normal;
   font-display: swap;
@@ -29,8 +68,8 @@
 }
 
 @font-face {
-  font-family: "Alte Haas Grotesk";
-  src: url("/fonts/AlteHaasGroteskBold.ttf") format("truetype");
+  font-family: "Panton";
+  src: url("/fonts/PantonDemo-Black.otf") format("opentype");
   font-weight: 700;
   font-style: normal;
   font-display: swap;
@@ -38,10 +77,82 @@
 }
 
 @font-face {
-  font-family: "Alte Haas Grotesk";
-  src: url("/fonts/AlteHaasGroteskBold.ttf") format("truetype");
+  font-family: "Panton";
+  src: url("/fonts/PantonDemo-Black.otf") format("opentype");
   font-weight: 800;
   font-style: normal;
+  font-display: swap;
+  unicode-range: U+0000-002F, U+003A-10FFFF;
+}
+
+@font-face {
+  font-family: "Panton";
+  src: url("/fonts/PantonDemo-BlackItalic.otf") format("opentype");
+  font-weight: 600;
+  font-style: italic;
+  font-display: swap;
+  unicode-range: U+0000-002F, U+003A-10FFFF;
+}
+
+@font-face {
+  font-family: "Panton";
+  src: url("/fonts/PantonDemo-BlackItalic.otf") format("opentype");
+  font-weight: 700;
+  font-style: italic;
+  font-display: swap;
+  unicode-range: U+0000-002F, U+003A-10FFFF;
+}
+
+@font-face {
+  font-family: "Panton";
+  src: url("/fonts/PantonDemo-BlackItalic.otf") format("opentype");
+  font-weight: 800;
+  font-style: italic;
+  font-display: swap;
+  unicode-range: U+0000-002F, U+003A-10FFFF;
+}
+
+@font-face {
+  font-family: "Panton Narrow";
+  src: url("/fonts/PantonNarrowDemo-Black.otf") format("opentype");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0000-002F, U+003A-10FFFF;
+}
+
+@font-face {
+  font-family: "Panton Narrow";
+  src: url("/fonts/PantonNarrowDemo-Black.otf") format("opentype");
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0000-002F, U+003A-10FFFF;
+}
+
+@font-face {
+  font-family: "Panton Narrow";
+  src: url("/fonts/PantonNarrowDemo-BlackItalic.otf") format("opentype");
+  font-weight: 700;
+  font-style: italic;
+  font-display: swap;
+  unicode-range: U+0000-002F, U+003A-10FFFF;
+}
+
+@font-face {
+  font-family: "Panton Narrow";
+  src: url("/fonts/PantonNarrowDemo-Light.otf") format("opentype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0000-002F, U+003A-10FFFF;
+}
+
+@font-face {
+  font-family: "Panton Narrow";
+  src: url("/fonts/PantonNarrowDemo-LightItalic.otf") format("opentype");
+  font-weight: 400;
+  font-style: italic;
   font-display: swap;
   unicode-range: U+0000-002F, U+003A-10FFFF;
 }
@@ -56,7 +167,8 @@
   --border: #d9ddd9;
   --muted: #6b726e;
   --radius: 0.5rem;
-  --font-alte-haas: "Alte Haas Grotesk";
+  --font-panton: "Panton";
+  --font-panton-narrow: "Panton Narrow";
 }
 
 @theme inline {
@@ -68,14 +180,14 @@
   --color-surface: var(--surface);
   --color-border: var(--border);
   --color-muted: var(--muted);
-  --font-sans: var(--font-alte-haas), var(--font-jakarta);
+  --font-sans: var(--font-panton), var(--font-jakarta);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-alte-haas), var(--font-jakarta), ui-sans-serif,
-    system-ui, sans-serif;
+  font-family: var(--font-panton), var(--font-jakarta), ui-sans-serif, system-ui,
+    sans-serif;
   font-weight: 400;
 }
 
@@ -84,9 +196,31 @@ h2,
 h3,
 h4,
 h5,
-h6,
+h6 {
+  font-weight: 800;
+}
+
+em,
+i,
+.italic {
+  font-style: italic;
+}
+
 .wordmark {
-  font-weight: 700;
+  display: inline-flex;
+  flex-direction: column;
+  font-family: var(--font-panton-narrow), var(--font-panton), var(--font-jakarta),
+    sans-serif;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 0.95;
+  color: var(--brand);
+}
+
+.wordmark span {
+  font-weight: 800;
+  font-size: 0.92em;
+  letter-spacing: -0.02em;
 }
 
 input,
@@ -225,21 +359,6 @@ input[type="date"].field {
   border-radius: var(--radius);
   border: 1px solid var(--border);
   background: #fff;
-}
-
-.wordmark {
-  display: inline-flex;
-  flex-direction: column;
-  font-weight: 800;
-  letter-spacing: -0.03em;
-  line-height: 0.95;
-  color: var(--brand);
-}
-
-.wordmark span {
-  font-weight: 800;
-  font-size: 0.92em;
-  letter-spacing: -0.02em;
 }
 
 .wordmark-inline {
