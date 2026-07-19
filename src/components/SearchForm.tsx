@@ -131,11 +131,17 @@ export default function SearchForm({ defaults, variant = "hero" }: Props) {
       onSubmit={onSubmit}
       className={
         isHero
-          ? "w-full rounded-xl border border-border bg-white p-4 shadow-md sm:p-5"
+          ? "w-full rounded-2xl border border-border bg-white p-5 shadow-md sm:p-6 md:p-7"
           : "panel w-full p-4"
       }
     >
-      <div className="grid grid-cols-1 gap-3 lg:grid-cols-[1fr_1fr_auto] lg:items-end">
+      <div
+        className={
+          isHero
+            ? "grid grid-cols-1 gap-4 lg:grid-cols-[1fr_1fr_auto] lg:items-end lg:gap-5"
+            : "grid grid-cols-1 gap-3 lg:grid-cols-[1fr_1fr_auto] lg:items-end"
+        }
+      >
         <DateTimeField
           label="Pick-up"
           date={pickupDate}
@@ -143,6 +149,7 @@ export default function SearchForm({ defaults, variant = "hero" }: Props) {
           onDateChange={setPickupDate}
           onTimeChange={setPickupTime}
           timeAriaLabel="Pick-up time"
+          large={isHero}
         />
         <DateTimeField
           label="Return"
@@ -151,11 +158,19 @@ export default function SearchForm({ defaults, variant = "hero" }: Props) {
           onDateChange={setDropoffDate}
           onTimeChange={setDropoffTime}
           timeAriaLabel="Return time"
+          large={isHero}
         />
 
-        <button type="submit" className="btn-primary gap-2 lg:self-end">
+        <button
+          type="submit"
+          className={
+            isHero
+              ? "btn-primary gap-2 px-8 text-base lg:min-h-12 lg:self-end"
+              : "btn-primary gap-2 lg:self-end"
+          }
+        >
           Search
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden>
+          <svg width={isHero ? 18 : 16} height={isHero ? 18 : 16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden>
             <path d="M5 12h14M13 6l6 6-6 6" />
           </svg>
         </button>
@@ -173,6 +188,7 @@ function DateTimeField({
   onDateChange,
   onTimeChange,
   timeAriaLabel,
+  large = false,
 }: {
   label: string;
   date: string;
@@ -180,27 +196,42 @@ function DateTimeField({
   onDateChange: (value: string) => void;
   onTimeChange: (value: string) => void;
   timeAriaLabel: string;
+  large?: boolean;
 }) {
   return (
-    <label className="flex min-w-0 flex-col gap-1.5">
-      <span className="field-label flex items-center gap-1.5">
-        <CalendarIcon />
+    <label className={`flex min-w-0 flex-col ${large ? "gap-2" : "gap-1.5"}`}>
+      <span
+        className={`field-label flex items-center gap-1.5 ${large ? "text-sm" : ""}`}
+      >
+        <CalendarIcon size={large ? 14 : 12} />
         {label}
       </span>
-      <div className="flex min-w-0 items-stretch gap-2">
-        <div className="min-w-[11rem] flex-[2.2] sm:min-w-[13rem]">
+      <div className={`flex min-w-0 items-stretch ${large ? "gap-2.5" : "gap-2"}`}>
+        <div
+          className={
+            large
+              ? "min-w-[12rem] flex-[2.2] sm:min-w-[15rem]"
+              : "min-w-[11rem] flex-[2.2] sm:min-w-[13rem]"
+          }
+        >
           <input
             type="date"
             value={date}
             onChange={(e) => onDateChange(e.target.value)}
-            className="field w-full [color-scheme:light]"
+            className={`field w-full [color-scheme:light] ${large ? "min-h-12 text-base" : ""}`}
           />
         </div>
-        <div className="w-[5.75rem] shrink-0 sm:w-[6.25rem]">
+        <div
+          className={
+            large
+              ? "w-[6.5rem] shrink-0 sm:w-[7.25rem]"
+              : "w-[5.75rem] shrink-0 sm:w-[6.25rem]"
+          }
+        >
           <select
             value={time}
             onChange={(e) => onTimeChange(e.target.value)}
-            className="field w-full"
+            className={`field w-full ${large ? "min-h-12 text-base" : ""}`}
             aria-label={timeAriaLabel}
           >
             {TIME_OPTIONS.map((t) => (
@@ -215,11 +246,11 @@ function DateTimeField({
   );
 }
 
-function CalendarIcon() {
+function CalendarIcon({ size = 12 }: { size?: number }) {
   return (
     <svg
-      width="12"
-      height="12"
+      width={size}
+      height={size}
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
