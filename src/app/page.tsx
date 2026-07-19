@@ -56,7 +56,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="bg-surface">
+      <section className="bg-brand">
         <div className="mx-auto grid max-w-6xl grid-cols-1 gap-10 px-5 py-14 sm:grid-cols-2 lg:grid-cols-4">
           {TRUST.map((item, i) => (
             <div
@@ -64,8 +64,8 @@ export default function Home() {
               className={`flex flex-col gap-2 animate-fade-rise animate-delay-${i === 0 ? "1" : i === 1 ? "2" : "3"}`}
             >
               <TrustIcon kind={item.icon} />
-              <h2 className="text-sm font-bold text-foreground">{item.title}</h2>
-              <p className="text-sm leading-relaxed text-muted">{item.body}</p>
+              <h2 className="text-sm font-bold text-white">{item.title}</h2>
+              <p className="text-sm leading-relaxed text-white/75">{item.body}</p>
             </div>
           ))}
         </div>
@@ -84,7 +84,7 @@ function TrustIcon({ kind }: { kind: "van" | "fuel" | "clock" | "pin" }) {
     fill: "none",
     stroke: "currentColor",
     strokeWidth: 1.75,
-    className: "text-foreground",
+    className: "text-white/90",
   } as const;
 
   if (kind === "fuel") {
