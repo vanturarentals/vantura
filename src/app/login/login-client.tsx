@@ -30,10 +30,14 @@ export default function LoginClient() {
     <div className="flex min-h-screen flex-col bg-surface">
       <Header />
       <main className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center px-5 py-16">
-        <p className="wordmark text-base">
-          vantura
-          <span>rentals</span>
-        </p>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/logo.png"
+          alt="Vantura Rentals"
+          className="h-10 w-auto"
+          width={200}
+          height={88}
+        />
         <h1 className="mt-4 text-3xl font-bold text-brand">Log in</h1>
         <p className="mt-2 text-muted">
           Access seamless checkouts and easy trip management when you log in or

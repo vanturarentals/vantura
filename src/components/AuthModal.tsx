@@ -243,9 +243,15 @@ export default function AuthModal({
           ×
         </button>
 
-        <p className="wordmark text-base">
-          vantura
-          <span>rentals</span>
+        <p className="inline-flex">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/logo.png"
+            alt="Vantura Rentals"
+            className="h-9 w-auto"
+            width={180}
+            height={79}
+          />
         </p>
         <h2
           id="auth-modal-title"

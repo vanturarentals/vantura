@@ -1,15 +1,11 @@
 import Link from "next/link";
+import BrandLogo from "@/components/BrandLogo";
 
 export default function Footer() {
   return (
     <footer className="mt-auto border-t border-border bg-surface">
       <div className="mx-auto flex max-w-6xl flex-col gap-5 px-5 py-10 sm:flex-row sm:items-center sm:justify-between">
-        <Link href="/" className="shrink-0">
-          <span className="wordmark text-2xl">
-            vantura
-            <span>rentals</span>
-          </span>
-        </Link>
+        <BrandLogo className="h-10 w-auto" />
         <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm font-medium text-muted">
           <Link href="/contact" className="hover:text-brand">
             Contact Us

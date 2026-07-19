@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import AuthModal from "@/components/AuthModal";
+import BrandLogo from "@/components/BrandLogo";
 import ProfileCompleteModal from "@/components/ProfileCompleteModal";
 import { createClient } from "@/lib/supabase/client";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
@@ -75,12 +76,7 @@ export default function Header() {
     <>
       <header className="sticky top-0 z-30 border-b border-border bg-white">
         <div className="mx-auto flex h-[5.5rem] max-w-6xl items-center justify-between gap-4 pl-3 pr-5 sm:pl-4 sm:pr-5">
-          <Link href="/" className="shrink-0 -ml-0.5">
-            <span className="wordmark text-2xl sm:text-3xl">
-              vantura
-              <span>rentals</span>
-            </span>
-          </Link>
+          <BrandLogo priority className="h-12 w-auto sm:h-14" />
 
           <div className="flex items-center gap-5">
             <nav className="hidden items-center gap-7 text-sm font-semibold text-brand md:flex">
