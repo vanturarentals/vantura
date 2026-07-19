@@ -31,8 +31,7 @@ export default function Home() {
       <Header />
       <div className="bg-brand px-5 py-2.5 text-center">
         <p className="text-sm font-semibold tracking-wide text-white">
-          20% off your first booking — use code{" "}
-          <span className="font-bold tracking-wider">FIRST20</span> at checkout
+          20% off your first booking
         </p>
       </div>
 
