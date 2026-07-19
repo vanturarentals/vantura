@@ -56,18 +56,24 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="bg-brand">
-        <div className="mx-auto grid max-w-6xl grid-cols-1 gap-10 px-5 py-14 sm:grid-cols-2 lg:grid-cols-4">
-          {TRUST.map((item, i) => (
-            <div
-              key={item.title}
-              className={`flex flex-col gap-2 animate-fade-rise animate-delay-${i === 0 ? "1" : i === 1 ? "2" : "3"}`}
-            >
-              <TrustIcon kind={item.icon} />
-              <h2 className="text-sm font-bold text-white">{item.title}</h2>
-              <p className="text-sm leading-relaxed text-white/75">{item.body}</p>
-            </div>
-          ))}
+      <section className="bg-white px-5 pb-10 pt-2">
+        <div className="mx-auto max-w-6xl rounded-3xl bg-brand px-6 py-10 sm:px-8 sm:py-12">
+          <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4 lg:gap-6">
+            {TRUST.map((item, i) => (
+              <div
+                key={item.title}
+                className={`flex items-start gap-3 animate-fade-rise animate-delay-${i === 0 ? "1" : i === 1 ? "2" : "3"}`}
+              >
+                <TrustIcon kind={item.icon} />
+                <div>
+                  <h2 className="text-sm font-bold text-white">{item.title}</h2>
+                  <p className="mt-0.5 text-sm leading-relaxed text-white/75">
+                    {item.body}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -84,7 +90,7 @@ function TrustIcon({ kind }: { kind: "van" | "fuel" | "clock" | "pin" }) {
     fill: "none",
     stroke: "currentColor",
     strokeWidth: 1.75,
-    className: "text-white/90",
+    className: "mt-0.5 shrink-0 text-white/90",
   } as const;
 
   if (kind === "fuel") {
