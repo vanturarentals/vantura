@@ -5,7 +5,7 @@ export default function Footer() {
     <footer className="mt-auto border-t border-border bg-surface">
       <div className="mx-auto flex max-w-6xl flex-col gap-5 px-5 py-10 sm:flex-row sm:items-center sm:justify-between">
         <Link href="/" className="shrink-0">
-          <span className="wordmark text-xl">
+          <span className="wordmark text-2xl">
             vantura
             <span>rentals</span>
           </span>
