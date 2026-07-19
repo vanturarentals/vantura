@@ -20,23 +20,43 @@ export default function BookingSteps({ vanId }: { vanId: string }) {
     return pathname.endsWith(`/${slug}`);
   }
 
+  function stepIndex(slug: string) {
+    return STEPS.findIndex((s) => s.slug === slug);
+  }
+
+  const activeIdx = STEPS.findIndex((s) => isActive(s.slug));
+
   return (
-    <ol className="mb-8 flex flex-wrap gap-2 text-xs font-semibold uppercase tracking-wide">
-      {STEPS.map((step, i) => {
-        const href = step.slug ? `${base}/${step.slug}` : base;
-        const active = isActive(step.slug);
-        return (
-          <li key={step.slug || "vehicle"} className="flex items-center gap-2">
-            {i > 0 && <span className="text-border">/</span>}
-            <Link
-              href={href}
-              className={active ? "text-brand" : "text-muted hover:text-brand"}
-            >
-              {step.label}
-            </Link>
-          </li>
-        );
-      })}
-    </ol>
+    <nav aria-label="Booking progress" className="mb-8">
+      <ol className="flex flex-wrap items-center gap-x-1 gap-y-2 text-sm">
+        {STEPS.map((step, i) => {
+          const href = step.slug ? `${base}/${step.slug}` : base;
+          const active = isActive(step.slug);
+          const done = activeIdx > stepIndex(step.slug);
+          return (
+            <li key={step.slug || "vehicle"} className="flex items-center gap-1">
+              {i > 0 && (
+                <span className="mx-1 text-border" aria-hidden>
+                  →
+                </span>
+              )}
+              <Link
+                href={href}
+                className={
+                  active
+                    ? "font-bold text-brand"
+                    : done
+                      ? "font-medium text-foreground hover:text-brand"
+                      : "font-medium text-muted hover:text-brand"
+                }
+                aria-current={active ? "step" : undefined}
+              >
+                {step.label}
+              </Link>
+            </li>
+          );
+        })}
+      </ol>
+    </nav>
   );
 }

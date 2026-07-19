@@ -1,6 +1,4 @@
 import Link from "next/link";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
 import { getBookingBySessionId } from "@/lib/bookings";
 import { getVanById } from "@/lib/inventory";
 import { formatMoney } from "@/lib/pricing";
@@ -69,96 +67,74 @@ export default async function SuccessPage({
     : booking?.id.slice(0, 8).toUpperCase() ?? "—";
 
   return (
-    <div className="flex min-h-screen flex-col bg-surface">
-      <Header />
-      <main className="mx-auto w-full max-w-6xl flex-1 px-5 py-12">
-        <div className="grid grid-cols-1 gap-10 lg:grid-cols-[1fr_1fr] lg:items-center">
-          <div>
-            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-brand-muted text-2xl text-brand">
-              ✓
+    <div className="flex min-h-screen flex-col bg-white">
+      <main className="flex flex-1 flex-col lg:flex-row">
+        <div className="flex flex-1 flex-col justify-center bg-brand px-6 py-14 text-white sm:px-10 lg:px-14">
+          <div className="mx-auto w-full max-w-md animate-fade-rise">
+            <div className="flex h-16 w-16 items-center justify-center rounded-full border-2 border-white/40">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden>
+                <path d="M20 6L9 17l-5-5" />
+              </svg>
             </div>
-            <h1 className="mt-5 text-3xl font-bold text-brand">
+            <h1 className="mt-6 text-3xl font-extrabold tracking-tight sm:text-4xl">
               Your booking is confirmed!
             </h1>
-            <p className="mt-2 text-muted">
-              Booking reference{" "}
-              <span className="font-semibold text-foreground">{reference}</span>
+            <p className="mt-3 text-white/80">
+              Thanks for choosing vantura rentals. Keep this reference handy.
             </p>
 
-            {booking && (
-              <dl className="mt-6 space-y-2 rounded-md border border-border bg-white p-5 text-sm">
-                <Row label="Van" value={vanName} />
-                <Row
-                  label="Pick-up"
-                  value={formatDate(booking.startAt)}
-                />
-                <Row
-                  label="Return"
-                  value={formatDate(booking.endAt)}
-                />
-                <Row
-                  label="Total paid"
-                  value={formatMoney(booking.totalAmountMinor, booking.currency)}
-                />
-                <Row label="Status" value={booking.paymentStatus} />
-              </dl>
-            )}
-
-            <div className="mt-8">
-              <h2 className="text-sm font-bold uppercase tracking-wide text-muted">
-                What&apos;s next?
-              </h2>
-              <ul className="mt-3 space-y-3 text-sm text-foreground">
-                <li className="flex gap-3">
-                  <span className="font-bold text-brand">1.</span>
-                  Bring your driving licence and the card used for payment.
-                </li>
-                <li className="flex gap-3">
-                  <span className="font-bold text-brand">2.</span>
-                  Arrive on time for pick-up — we&apos;re open 24/7.
-                </li>
-                <li className="flex gap-3">
-                  <span className="font-bold text-brand">3.</span>
-                  Check your email for the confirmation and booking details.
-                </li>
-              </ul>
+            <div className="mt-8 rounded-lg bg-white p-5 text-foreground shadow-sm">
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted">
+                Booking reference
+              </p>
+              <p className="mt-1 font-mono text-2xl font-bold tracking-wide text-brand">
+                {reference}
+              </p>
+              {booking && (
+                <dl className="mt-4 space-y-2 border-t border-border pt-4 text-sm">
+                  <Row label="Van" value={vanName} />
+                  <Row label="Pick-up" value={formatDate(booking.startAt)} />
+                  <Row label="Return" value={formatDate(booking.endAt)} />
+                  <Row
+                    label="Total paid"
+                    value={formatMoney(booking.totalAmountMinor, booking.currency)}
+                  />
+                </dl>
+              )}
             </div>
+
+            <ul className="mt-8 space-y-2 text-sm text-white/85">
+              <li>Bring your driving licence and the card used for payment.</li>
+              <li>Arrive on time for pick-up — we&apos;re open 24/7.</li>
+              <li>Check your email for the confirmation details.</li>
+            </ul>
 
             <div className="mt-8 flex flex-wrap gap-3">
               <Link
+                href="/manage"
+                className="inline-flex items-center justify-center rounded-lg bg-white px-5 py-2.5 text-sm font-semibold text-brand hover:bg-brand-muted"
+              >
+                Manage booking
+              </Link>
+              <Link
                 href="/"
-                className="rounded bg-brand px-5 py-2.5 text-sm font-semibold text-white hover:bg-brand-hover"
+                className="inline-flex items-center justify-center rounded-lg border border-white/40 px-5 py-2.5 text-sm font-semibold text-white hover:bg-white/10"
               >
                 Back to home
               </Link>
             </div>
           </div>
+        </div>
 
-          <div className="overflow-hidden rounded-md border border-border bg-white">
-            <div className="aspect-[4/3] bg-surface">
-              {imageUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={imageUrl}
-                  alt={vanName}
-                  className="h-full w-full object-cover"
-                />
-              ) : (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src="/hero-coastal.jpg"
-                  alt="Thanks for choosing Vantura"
-                  className="h-full w-full object-cover"
-                />
-              )}
-            </div>
-            <p className="p-5 text-center text-sm font-medium text-muted">
-              Thanks for choosing Vantura Rentals.
-            </p>
-          </div>
+        <div className="relative min-h-[40vh] flex-1 lg:min-h-0">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={imageUrl || "/hero-van-poster.jpg"}
+            alt={vanName}
+            className="absolute inset-0 h-full w-full object-cover"
+          />
         </div>
       </main>
-      <Footer />
     </div>
   );
 }

@@ -83,10 +83,8 @@ function DriverForm({ draft }: { draft: BookingDraft }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps -- draft identity is vanId-scoped
   }, [draft.vanId]);
 
-  const field =
-    "w-full rounded border border-border bg-white px-3 py-2.5 text-sm outline-none focus:border-brand";
-  const fieldLocked =
-    "w-full cursor-not-allowed rounded border border-border bg-surface px-3 py-2.5 text-sm text-muted outline-none";
+  const field = "field";
+  const fieldLocked = "field cursor-not-allowed bg-surface text-muted";
 
   function updateDriver(patch: Partial<BookingDraft["driver"]>) {
     setDriver((prev) => {
@@ -133,7 +131,7 @@ function DriverForm({ draft }: { draft: BookingDraft }) {
 
   return (
     <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1fr_300px]">
-      <div className="space-y-4 rounded-md border border-border bg-white p-6">
+      <div className="panel space-y-4 p-6">
         <h1 className="text-2xl font-bold text-brand">Driver details</h1>
         <p className="text-sm text-muted">
           Drivers must be 21 or over. We&apos;ll send your confirmation to this
@@ -148,7 +146,7 @@ function DriverForm({ draft }: { draft: BookingDraft }) {
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <label className="space-y-1.5">
-            <span className="text-xs font-semibold text-muted">Title</span>
+            <span className="field-label">Title</span>
             <select
               value={driver.title}
               onChange={(e) => updateDriver({ title: e.target.value })}
@@ -163,7 +161,7 @@ function DriverForm({ draft }: { draft: BookingDraft }) {
             </select>
           </label>
           <label className="space-y-1.5">
-            <span className="text-xs font-semibold text-muted">First name</span>
+            <span className="field-label">First name</span>
             <input
               value={driver.firstName}
               onChange={(e) => updateDriver({ firstName: e.target.value })}
@@ -174,7 +172,7 @@ function DriverForm({ draft }: { draft: BookingDraft }) {
             />
           </label>
           <label className="space-y-1.5">
-            <span className="text-xs font-semibold text-muted">Last name</span>
+            <span className="field-label">Last name</span>
             <input
               value={driver.lastName}
               onChange={(e) => updateDriver({ lastName: e.target.value })}
@@ -188,7 +186,7 @@ function DriverForm({ draft }: { draft: BookingDraft }) {
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <label className="space-y-1.5">
-            <span className="text-xs font-semibold text-muted">Email</span>
+            <span className="field-label">Email</span>
             <input
               type="email"
               value={driver.email}
@@ -205,9 +203,7 @@ function DriverForm({ draft }: { draft: BookingDraft }) {
             />
           </label>
           <label className="space-y-1.5">
-            <span className="text-xs font-semibold text-muted">
-              Phone (digits only)
-            </span>
+            <span className="field-label">Phone (digits only)</span>
             <input
               type="tel"
               value={driver.phone}
@@ -223,9 +219,7 @@ function DriverForm({ draft }: { draft: BookingDraft }) {
         </div>
 
         <label className="block space-y-1.5">
-          <span className="text-xs font-semibold text-muted">
-            Confirm phone
-          </span>
+          <span className="field-label">Confirm phone</span>
           <input
             type="tel"
             value={phoneConfirm}
@@ -241,7 +235,7 @@ function DriverForm({ draft }: { draft: BookingDraft }) {
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <label className="space-y-1.5">
-            <span className="text-xs font-semibold text-muted">Date of birth</span>
+            <span className="field-label">Date of birth</span>
             <input
               type="date"
               max={maxDob()}
@@ -254,9 +248,7 @@ function DriverForm({ draft }: { draft: BookingDraft }) {
             />
           </label>
           <label className="space-y-1.5">
-            <span className="text-xs font-semibold text-muted">
-              Country of residence
-            </span>
+            <span className="field-label">Country of residence</span>
             <input
               value={driver.country}
               onChange={(e) => updateDriver({ country: e.target.value })}
@@ -273,15 +265,11 @@ function DriverForm({ draft }: { draft: BookingDraft }) {
           <button
             type="button"
             onClick={() => router.push(`/book/${draft.vanId}/extras`)}
-            className="cursor-pointer text-sm font-medium text-muted hover:text-brand"
+            className="btn-ghost px-0"
           >
             ← Back
           </button>
-          <button
-            type="button"
-            onClick={onContinue}
-            className="cursor-pointer rounded bg-brand px-6 py-2.5 text-sm font-semibold text-white hover:bg-brand-hover"
-          >
+          <button type="button" onClick={onContinue} className="btn-primary">
             Continue
           </button>
         </div>

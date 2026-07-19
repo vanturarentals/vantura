@@ -81,12 +81,12 @@ export default function ProfileCompleteModal({ user, onSaved }: Props) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/45" aria-hidden />
+      <div className="absolute inset-0 bg-black/40" aria-hidden />
       <div
         role="dialog"
         aria-modal="true"
         aria-labelledby="profile-modal-title"
-        className="relative z-10 w-full max-w-md rounded-md bg-white p-6 shadow-2xl sm:p-8"
+        className="panel relative z-10 w-full max-w-md p-6 sm:p-8"
       >
         <h2
           id="profile-modal-title"
@@ -104,26 +104,22 @@ export default function ProfileCompleteModal({ user, onSaved }: Props) {
           {!fromOAuth && (
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <label className="block space-y-1.5">
-                <span className="text-xs font-semibold text-muted">
-                  First name
-                </span>
+                <span className="field-label">First name</span>
                 <input
                   value={firstName}
                   onChange={(e) => setFirstName(e.target.value)}
                   autoComplete="given-name"
-                  className="w-full rounded border border-border bg-white px-3 py-2.5 text-sm outline-none focus:border-brand"
+                  className="field"
                   required
                 />
               </label>
               <label className="block space-y-1.5">
-                <span className="text-xs font-semibold text-muted">
-                  Last name
-                </span>
+                <span className="field-label">Last name</span>
                 <input
                   value={lastName}
                   onChange={(e) => setLastName(e.target.value)}
                   autoComplete="family-name"
-                  className="w-full rounded border border-border bg-white px-3 py-2.5 text-sm outline-none focus:border-brand"
+                  className="field"
                   required
                 />
               </label>
@@ -140,27 +136,21 @@ export default function ProfileCompleteModal({ user, onSaved }: Props) {
           )}
 
           <label className="block space-y-1.5">
-            <span className="text-xs font-semibold text-muted">
-              Phone (digits only)
-            </span>
+            <span className="field-label">Phone (digits only)</span>
             <input
               type="tel"
               value={phone}
               onChange={(e) => setPhone(e.target.value.replace(/\D/g, ""))}
               autoComplete="tel-national"
               inputMode="numeric"
-              className="w-full rounded border border-border bg-white px-3 py-2.5 text-sm outline-none focus:border-brand"
+              className="field"
               required
             />
           </label>
 
           {error && <p className="text-sm text-red-600">{error}</p>}
 
-          <button
-            type="submit"
-            disabled={busy}
-            className="w-full cursor-pointer rounded bg-brand px-5 py-3 text-sm font-semibold text-white hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-60"
-          >
+          <button type="submit" disabled={busy} className="btn-primary w-full py-3">
             {busy ? "Saving…" : "Save details"}
           </button>
         </form>

@@ -23,17 +23,17 @@ const PLACEHOLDER_FAQS = [
 
 export default function FaqPage() {
   return (
-    <div className="flex min-h-screen flex-col bg-white">
+    <div className="flex min-h-screen flex-col bg-surface">
       <Header />
       <main className="mx-auto w-full max-w-3xl flex-1 px-5 py-12">
         <h1 className="text-3xl font-bold text-brand">FAQ</h1>
         <p className="mt-2 text-muted">
-          Answers to common questions. You can update these anytime.
+          Answers to common questions about van hire with vantura rentals.
         </p>
 
-        <div className="mt-10 divide-y divide-border">
+        <div className="panel mt-10 divide-y divide-border overflow-hidden">
           {PLACEHOLDER_FAQS.map((item) => (
-            <div key={item.q} className="py-5">
+            <div key={item.q} className="px-5 py-5">
               <h2 className="text-lg font-semibold text-foreground">{item.q}</h2>
               <p className="mt-2 text-muted">{item.a}</p>
             </div>

@@ -49,7 +49,7 @@ export default function UnverifiedAccountPanel({ email }: Props) {
   }
 
   return (
-    <div className="rounded-md border border-border bg-white p-6 sm:p-8">
+    <div className="panel p-6 sm:p-8">
       <h1 className="text-3xl font-bold text-brand">Verify your email</h1>
       <p className="mt-3 text-muted">
         Managing bookings isn&apos;t available until your account is verified.
@@ -66,15 +66,11 @@ export default function UnverifiedAccountPanel({ email }: Props) {
           type="button"
           disabled={busy}
           onClick={resend}
-          className="cursor-pointer rounded bg-brand px-5 py-2.5 text-sm font-semibold text-white hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-60"
+          className="btn-primary"
         >
           {busy ? "Sending…" : "Resend verification email"}
         </button>
-        <button
-          type="button"
-          onClick={signOut}
-          className="cursor-pointer rounded border border-border px-5 py-2.5 text-sm font-semibold hover:bg-surface"
-        >
+        <button type="button" onClick={signOut} className="btn-secondary">
           Sign out
         </button>
       </div>

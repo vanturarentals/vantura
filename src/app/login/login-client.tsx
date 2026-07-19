@@ -27,10 +27,11 @@ export default function LoginClient() {
   }, [router, next]);
 
   return (
-    <div className="flex min-h-screen flex-col bg-white">
+    <div className="flex min-h-screen flex-col bg-surface">
       <Header />
       <main className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center px-5 py-16">
-        <h1 className="text-3xl font-bold text-brand">Login / Sign up</h1>
+        <p className="wordmark text-base">vantura <span>rentals</span></p>
+        <h1 className="mt-4 text-3xl font-bold text-brand">Log in</h1>
         <p className="mt-2 text-muted">
           Access seamless checkouts and easy trip management when you log in or
           create an account.
@@ -45,12 +46,12 @@ export default function LoginClient() {
         <button
           type="button"
           onClick={() => setOpen(true)}
-          className="mt-8 w-full rounded bg-brand px-5 py-3 text-sm font-semibold text-white hover:bg-brand-hover"
+          className="btn-primary mt-8 w-full py-3"
         >
           Continue
         </button>
 
-        <div className="mt-8 rounded-md border border-border p-5">
+        <div className="panel mt-8 p-5">
           <h2 className="text-sm font-bold text-foreground">
             Prefer not to create an account?
           </h2>

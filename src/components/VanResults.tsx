@@ -107,7 +107,7 @@ export default function VanResults() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-border bg-white px-4 py-3">
+      <div className="panel flex flex-wrap items-center justify-between gap-3 px-4 py-3">
         <div className="text-sm text-foreground">
           <span className="font-semibold">Your dates</span>
           <span className="text-muted">
@@ -118,7 +118,7 @@ export default function VanResults() {
         <button
           type="button"
           onClick={() => setEditing((v) => !v)}
-          className="text-sm font-semibold text-brand hover:underline"
+          className="btn-ghost px-0"
         >
           {editing ? "Hide search" : "Change search"}
         </button>
@@ -128,22 +128,20 @@ export default function VanResults() {
         <SearchForm variant="inline" defaults={{ pickupAt, dropoffAt }} />
       )}
 
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-[240px_1fr]">
-        <aside className="h-fit rounded-md border border-border bg-white p-5">
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-[220px_1fr]">
+        <aside className="panel h-fit p-5">
           <h2 className="text-sm font-bold text-foreground">Filters</h2>
           <div className="mt-5">
-            <p className="text-xs font-semibold uppercase tracking-wide text-muted">
-              Van size
-            </p>
-            <ul className="mt-3 space-y-2">
+            <p className="field-label uppercase tracking-wide">Van size</p>
+            <ul className="mt-3 space-y-2.5">
               {SIZE_OPTIONS.map((size) => (
                 <li key={size}>
-                  <label className="flex cursor-pointer items-center gap-2 text-sm">
+                  <label className="flex cursor-pointer items-center gap-2.5 text-sm text-foreground">
                     <input
                       type="checkbox"
                       checked={sizes.has(size)}
                       onChange={() => toggleSize(size)}
-                      className="accent-brand"
+                      className="size-4 accent-brand"
                     />
                     {size}
                   </label>
@@ -169,9 +167,9 @@ export default function VanResults() {
             {filtered.map((van) => (
               <li
                 key={van.id}
-                className="flex flex-col overflow-hidden rounded-md border border-border bg-white sm:flex-row"
+                className="panel flex flex-col overflow-hidden sm:flex-row"
               >
-                <div className="aspect-[16/10] w-full bg-surface sm:w-56 sm:shrink-0 sm:aspect-auto sm:min-h-[140px]">
+                <div className="aspect-[16/10] w-full bg-surface sm:aspect-auto sm:min-h-[168px] sm:w-64 sm:shrink-0">
                   {van.imageUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
@@ -180,7 +178,7 @@ export default function VanResults() {
                       className="h-full w-full object-cover"
                     />
                   ) : (
-                    <div className="flex h-full min-h-[120px] items-center justify-center text-sm text-muted">
+                    <div className="flex h-full min-h-[140px] items-center justify-center text-sm text-muted">
                       No image
                     </div>
                   )}
@@ -194,12 +192,10 @@ export default function VanResults() {
                     <p className="text-sm text-muted">
                       {inferCategoryLabel(van.name)}
                     </p>
-                    <div className="mt-3 flex flex-wrap gap-3 text-xs text-muted">
+                    <div className="mt-3 flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted">
                       <span>{inferSeats(van.name)} seats</span>
-                      <span>·</span>
-                      <span>Manual</span>
-                      <span>·</span>
-                      <span>Diesel</span>
+                      <span aria-hidden>·</span>
+                      <span>{inferVanSize(van.name)}</span>
                     </div>
                   </div>
 
@@ -220,7 +216,7 @@ export default function VanResults() {
                         dropoffAt,
                       }).toString()}`}
                       onClick={() => selectVan(van)}
-                      className="rounded bg-brand px-5 py-2.5 text-sm font-semibold text-white hover:bg-brand-hover"
+                      className="btn-primary"
                     >
                       Select
                     </Link>

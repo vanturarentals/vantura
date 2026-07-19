@@ -162,7 +162,7 @@ export default function ReviewPage() {
                 lines={["Front and back uploaded"]}
               />
 
-              <label className="flex items-start gap-3 rounded-md border border-border bg-white p-4 text-sm">
+              <label className="panel flex items-start gap-3 p-4 text-sm">
                 <input
                   type="checkbox"
                   checked={accepted}
@@ -181,14 +181,14 @@ export default function ReviewPage() {
                 <button
                   type="button"
                   onClick={() => router.push(`/book/${vanId}/licence`)}
-                  className="text-sm font-medium text-muted hover:text-brand"
+                  className="btn-ghost px-0"
                 >
                   ← Back
                 </button>
                 <button
                   type="button"
                   onClick={startPayment}
-                  className="rounded bg-brand px-6 py-3 text-sm font-semibold text-white hover:bg-brand-hover"
+                  className="btn-primary py-3"
                 >
                   Continue to payment
                 </button>
@@ -207,7 +207,7 @@ export default function ReviewPage() {
               <button
                 type="button"
                 onClick={() => setShowPayment(false)}
-                className="text-sm font-medium text-muted hover:text-brand"
+                className="btn-ghost px-0"
               >
                 ← Back to review
               </button>
@@ -231,7 +231,7 @@ function Section({
   lines: string[];
 }) {
   return (
-    <div className="rounded-md border border-border bg-white p-4">
+    <div className="panel p-4">
       <div className="flex items-start justify-between gap-3">
         <h2 className="text-sm font-bold text-foreground">{title}</h2>
         <Link

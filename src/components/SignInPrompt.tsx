@@ -17,7 +17,7 @@ export default function SignInPrompt({ signedIn }: Props) {
 
   return (
     <>
-      <div className="rounded-md border border-brand/20 bg-brand-muted/60 p-4">
+      <div className="rounded-lg bg-brand-muted/60 p-4">
         <p className="text-sm font-semibold text-brand">
           Sign in to manage this booking later
         </p>
@@ -29,14 +29,14 @@ export default function SignInPrompt({ signedIn }: Props) {
           <button
             type="button"
             onClick={() => setOpen(true)}
-            className="rounded bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-hover"
+            className="btn-primary"
           >
-            Log in | Register
+            Log in
           </button>
           <button
             type="button"
             onClick={() => setDismissed(true)}
-            className="text-sm font-medium text-muted hover:text-brand"
+            className="btn-ghost"
           >
             Continue as guest
           </button>

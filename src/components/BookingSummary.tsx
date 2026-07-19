@@ -17,13 +17,11 @@ export default function BookingSummary({ draft }: Props) {
   const currency = draft.currency || "gbp";
 
   return (
-    <aside className="rounded-md border border-border bg-white p-5">
-      <h2 className="text-sm font-bold uppercase tracking-wide text-muted">
-        Your booking
-      </h2>
+    <aside className="panel h-fit p-5">
+      <h2 className="text-sm font-bold text-foreground">Your hire summary</h2>
 
-      <div className="mt-4 overflow-hidden rounded border border-border">
-        <div className="aspect-[16/10] bg-surface">
+      <div className="mt-4 overflow-hidden rounded-lg bg-surface">
+        <div className="aspect-[16/10]">
           {draft.imageUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
@@ -32,7 +30,7 @@ export default function BookingSummary({ draft }: Props) {
               className="h-full w-full object-cover"
             />
           ) : (
-            <div className="flex h-full items-center justify-center text-sm text-muted">
+            <div className="flex h-full min-h-28 items-center justify-center text-sm text-muted">
               {draft.vanName}
             </div>
           )}

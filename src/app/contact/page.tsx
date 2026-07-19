@@ -4,7 +4,7 @@ import { supportConfig } from "@/lib/support";
 
 export default function ContactPage() {
   return (
-    <div className="flex min-h-screen flex-col bg-white">
+    <div className="flex min-h-screen flex-col bg-surface">
       <Header />
       <main className="mx-auto w-full max-w-3xl flex-1 px-5 py-12">
         <h1 className="text-3xl font-bold text-brand">Contact Us</h1>
@@ -13,11 +13,9 @@ export default function ContactPage() {
           to you.
         </p>
 
-        <div className="mt-10 space-y-6 rounded-md border border-border bg-surface p-6">
+        <div className="panel mt-10 space-y-6 p-6">
           <div>
-            <h2 className="text-sm font-bold uppercase tracking-wide text-muted">
-              Email
-            </h2>
+            <h2 className="field-label uppercase tracking-wide">Email</h2>
             <a
               href={`mailto:${supportConfig.email}`}
               className="mt-1 block text-lg font-semibold text-brand hover:underline"
@@ -26,9 +24,7 @@ export default function ContactPage() {
             </a>
           </div>
           <div>
-            <h2 className="text-sm font-bold uppercase tracking-wide text-muted">
-              Phone
-            </h2>
+            <h2 className="field-label uppercase tracking-wide">Phone</h2>
             {supportConfig.phone ? (
               <a
                 href={`tel:${supportConfig.phone.replace(/\s+/g, "")}`}
@@ -43,9 +39,7 @@ export default function ContactPage() {
             )}
           </div>
           <div>
-            <h2 className="text-sm font-bold uppercase tracking-wide text-muted">
-              Hours
-            </h2>
+            <h2 className="field-label uppercase tracking-wide">Hours</h2>
             <p className="mt-1 text-foreground">Support available 24/7</p>
           </div>
         </div>

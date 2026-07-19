@@ -58,7 +58,7 @@ export default function ExtrasPage() {
               return (
                 <li
                   key={item.id}
-                  className="flex flex-col gap-3 rounded-md border border-border bg-white p-4 sm:flex-row sm:items-center sm:justify-between"
+                  className="panel flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between"
                 >
                   <div>
                     <p className="font-semibold">{item.name}</p>
@@ -75,7 +75,7 @@ export default function ExtrasPage() {
                       type="button"
                       aria-label={`Decrease ${item.name}`}
                       onClick={() => setQty(item.id, q - 1)}
-                      className="flex h-9 w-9 items-center justify-center rounded border border-border font-bold hover:bg-surface"
+                      className="flex h-9 w-9 items-center justify-center rounded-lg border border-border font-bold hover:bg-surface"
                     >
                       −
                     </button>
@@ -84,7 +84,7 @@ export default function ExtrasPage() {
                       type="button"
                       aria-label={`Increase ${item.name}`}
                       onClick={() => setQty(item.id, q + 1)}
-                      className="flex h-9 w-9 items-center justify-center rounded border border-border font-bold hover:bg-surface"
+                      className="flex h-9 w-9 items-center justify-center rounded-lg border border-border font-bold hover:bg-surface"
                     >
                       +
                     </button>
@@ -98,14 +98,14 @@ export default function ExtrasPage() {
             <button
               type="button"
               onClick={() => router.push(`/book/${vanId}`)}
-              className="text-sm font-medium text-muted hover:text-brand"
+              className="btn-ghost px-0"
             >
               ← Back
             </button>
             <button
               type="button"
               onClick={() => router.push(`/book/${vanId}/driver`)}
-              className="rounded bg-brand px-6 py-2.5 text-sm font-semibold text-white hover:bg-brand-hover"
+              className="btn-primary"
             >
               Continue
             </button>

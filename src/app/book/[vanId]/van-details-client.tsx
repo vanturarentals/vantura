@@ -10,6 +10,12 @@ import type { BookingDraft } from "@/lib/booking-draft";
 import { inferCategoryLabel, inferSeats, inferVanSize } from "@/lib/van-meta";
 import type { Van } from "@/lib/types";
 
+const FEATURES = [
+  { label: "Air con", icon: "ac" as const },
+  { label: "Bluetooth", icon: "bt" as const },
+  { label: "Parking sensors", icon: "park" as const },
+];
+
 export default function VanDetailsClient() {
   const params = useParams<{ vanId: string }>();
   const searchParams = useSearchParams();
@@ -79,13 +85,13 @@ export default function VanDetailsClient() {
   const total = draft.dailyRateMinor * days;
 
   return (
-    <div>
+    <div className="pb-24 lg:pb-0">
       <BookingSteps vanId={vanId} />
 
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1fr_320px]">
-        <div>
-          <div className="overflow-hidden rounded-md border border-border bg-white">
-            <div className="aspect-[16/9] bg-surface">
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1fr_300px]">
+        <div className="space-y-6">
+          <div className="overflow-hidden rounded-lg bg-surface">
+            <div className="aspect-[16/9]">
               {draft.imageUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
@@ -99,28 +105,32 @@ export default function VanDetailsClient() {
                 </div>
               )}
             </div>
-            <div className="p-6">
-              <h1 className="text-2xl font-bold text-foreground">
-                {draft.vanName}
-              </h1>
-              <p className="mt-1 text-muted">{inferCategoryLabel(draft.vanName)}</p>
+          </div>
 
-              <h2 className="mt-8 text-sm font-bold uppercase tracking-wide text-muted">
-                Features
-              </h2>
-              <dl className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
-                <Spec label="Size" value={inferVanSize(draft.vanName)} />
-                <Spec label="Seats" value={String(inferSeats(draft.vanName))} />
-                <Spec label="Transmission" value="Manual" />
-                <Spec label="Fuel" value="Diesel" />
-                <Spec label="Air conditioning" value="Available" />
-                <Spec label="Rear doors" value="Twin / barn" />
-              </dl>
-            </div>
+          <div>
+            <h1 className="text-2xl font-bold text-foreground sm:text-3xl">
+              {draft.vanName}
+            </h1>
+            <p className="mt-1 text-muted">{inferCategoryLabel(draft.vanName)}</p>
+
+            <ul className="mt-6 flex flex-wrap gap-x-6 gap-y-3 text-sm text-foreground">
+              {FEATURES.map((f) => (
+                <li key={f.label} className="flex items-center gap-2">
+                  <FeatureIcon kind={f.icon} />
+                  {f.label}
+                </li>
+              ))}
+            </ul>
+
+            <dl className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-3">
+              <Spec label="Size" value={inferVanSize(draft.vanName)} />
+              <Spec label="Seats" value={String(inferSeats(draft.vanName))} />
+              <Spec label="Daily rate" value={formatMoney(draft.dailyRateMinor, draft.currency)} />
+            </dl>
           </div>
         </div>
 
-        <aside className="h-fit rounded-md border border-border bg-white p-5">
+        <aside className="panel hidden h-fit p-5 lg:block">
           <p className="text-sm text-muted">
             {formatShort(draft.pickupAt)} → {formatShort(draft.dropoffAt)}
           </p>
@@ -134,7 +144,7 @@ export default function VanDetailsClient() {
           <button
             type="button"
             onClick={() => router.push(`/book/${vanId}/extras`)}
-            className="mt-6 w-full rounded bg-brand py-3 text-sm font-semibold text-white hover:bg-brand-hover"
+            className="btn-primary mt-6 w-full py-3"
           >
             Continue
           </button>
@@ -152,7 +162,7 @@ export default function VanDetailsClient() {
           <button
             type="button"
             onClick={() => router.push(`/book/${vanId}/extras`)}
-            className="rounded bg-brand px-6 py-2.5 text-sm font-semibold text-white"
+            className="btn-primary"
           >
             Continue
           </button>
@@ -164,10 +174,43 @@ export default function VanDetailsClient() {
 
 function Spec({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded border border-border px-3 py-2">
+    <div className="border-t border-border pt-3">
       <dt className="text-xs text-muted">{label}</dt>
-      <dd className="text-sm font-semibold">{value}</dd>
+      <dd className="mt-0.5 text-sm font-semibold">{value}</dd>
     </div>
+  );
+}
+
+function FeatureIcon({ kind }: { kind: "ac" | "bt" | "park" }) {
+  const props = {
+    width: 18,
+    height: 18,
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: 1.75,
+    className: "text-brand shrink-0",
+    "aria-hidden": true,
+  } as const;
+  if (kind === "bt") {
+    return (
+      <svg {...props}>
+        <path d="M12 3v18l7-5.5L12 10l7-5.5L12 3zM5 8l7 4M5 16l7-4" />
+      </svg>
+    );
+  }
+  if (kind === "park") {
+    return (
+      <svg {...props}>
+        <circle cx="12" cy="12" r="9" />
+        <path d="M9 16V8h4a3 3 0 0 1 0 6H9" />
+      </svg>
+    );
+  }
+  return (
+    <svg {...props}>
+      <path d="M12 4v4M8 8h8M6 12h12l-1 8H7l-1-8z" />
+    </svg>
   );
 }
 

@@ -126,7 +126,7 @@ function LicenceForm({ draft }: { draft: BookingDraft }) {
 
   return (
     <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1fr_300px]">
-      <div className="space-y-4 rounded-md border border-border bg-white p-6">
+      <div className="panel space-y-4 p-6">
         <h1 className="text-2xl font-bold text-brand">Driving licence</h1>
         <p className="text-sm text-muted">
           Upload a clear photo of the front and back of your UK driving licence.
@@ -160,21 +160,25 @@ function LicenceForm({ draft }: { draft: BookingDraft }) {
           />
         </div>
 
+        <p className="flex items-center gap-2 text-xs text-muted">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+            <rect x="5" y="11" width="14" height="10" rx="2" />
+            <path d="M8 11V7a4 4 0 0 1 8 0v4" />
+          </svg>
+          Your documents are secure and encrypted.
+        </p>
+
         {error && <p className="text-sm text-red-600">{error}</p>}
 
         <div className="flex justify-between pt-2">
           <button
             type="button"
             onClick={() => router.push(`/book/${draft.vanId}/driver`)}
-            className="text-sm font-medium text-muted hover:text-brand"
+            className="btn-ghost px-0"
           >
             ← Back
           </button>
-          <button
-            type="button"
-            onClick={onContinue}
-            className="rounded bg-brand px-6 py-2.5 text-sm font-semibold text-white hover:bg-brand-hover"
-          >
+          <button type="button" onClick={onContinue} className="btn-primary">
             Continue
           </button>
         </div>
@@ -202,19 +206,23 @@ function UploadCard({
 }) {
   return (
     <div className="space-y-2">
-      <span className="text-xs font-semibold text-muted">{label}</span>
-      <label className="flex min-h-44 cursor-pointer flex-col items-center justify-center gap-2 rounded-md border border-dashed border-border bg-surface px-3 py-4 text-center transition-colors hover:border-brand">
+      <span className="field-label">{label}</span>
+      <label className="flex min-h-48 cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-border bg-surface px-4 py-6 text-center transition-colors hover:border-brand">
         {preview ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={preview}
             alt={label}
-            className="max-h-40 w-full rounded object-contain"
+            className="max-h-44 w-full rounded object-contain"
           />
         ) : (
           <>
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-muted" aria-hidden>
+              <path d="M12 16V8M8 12l4-4 4 4" />
+              <path d="M4 16v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" />
+            </svg>
             <span className="text-sm font-medium text-foreground">
-              {busy ? "Processing…" : "Tap to upload"}
+              {busy ? "Processing…" : `Upload ${label.toLowerCase()} or drag and drop`}
             </span>
             <span className="text-xs text-muted">JPG, PNG or WebP</span>
           </>
@@ -230,11 +238,7 @@ function UploadCard({
         />
       </label>
       {preview && (
-        <button
-          type="button"
-          onClick={onClear}
-          className="text-xs font-medium text-muted hover:text-brand"
-        >
+        <button type="button" onClick={onClear} className="btn-ghost px-0 text-xs">
           Remove
         </button>
       )}

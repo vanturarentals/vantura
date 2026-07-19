@@ -57,7 +57,7 @@ export default function GuestManagePanel() {
 
   return (
     <>
-      <div className="rounded-md border border-brand/25 bg-brand-muted/50 p-5">
+      <div className="rounded-lg bg-brand-muted/70 p-5">
         <h2 className="text-lg font-bold text-brand">
           Create a free account — manage bookings online
         </h2>
@@ -70,9 +70,9 @@ export default function GuestManagePanel() {
         <button
           type="button"
           onClick={() => setAuthOpen(true)}
-          className="mt-4 rounded bg-brand px-5 py-2.5 text-sm font-semibold text-white hover:bg-brand-hover"
+          className="btn-primary mt-4"
         >
-          Log in | Sign up
+          Log in
         </button>
       </div>
 
@@ -82,47 +82,36 @@ export default function GuestManagePanel() {
         Guest cancellations need a phone call — accounts can cancel online.
       </p>
 
-      <form
-        onSubmit={onLookup}
-        className="mt-8 space-y-4 rounded-md border border-border bg-surface p-6"
-      >
+      <form onSubmit={onLookup} className="panel mt-8 space-y-4 bg-surface p-6">
         <label className="block space-y-1.5">
-          <span className="text-xs font-semibold text-muted">
-            Booking reference
-          </span>
+          <span className="field-label">Booking reference</span>
           <input
             value={reference}
             onChange={(e) => setReference(e.target.value)}
             placeholder="K7M-2X9-QP4"
-            className="w-full rounded border border-border bg-white px-3 py-2.5 font-mono text-sm outline-none focus:border-brand"
+            className="field font-mono"
             required
           />
         </label>
         <label className="block space-y-1.5">
-          <span className="text-xs font-semibold text-muted">
-            Email used at checkout
-          </span>
+          <span className="field-label">Email used at checkout</span>
           <input
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="name@mail.com"
-            className="w-full rounded border border-border bg-white px-3 py-2.5 text-sm outline-none focus:border-brand"
+            className="field"
             required
           />
         </label>
-        <button
-          type="submit"
-          disabled={busy}
-          className="w-full rounded bg-brand px-5 py-3 text-sm font-semibold text-white hover:bg-brand-hover disabled:opacity-60"
-        >
+        <button type="submit" disabled={busy} className="btn-primary w-full py-3">
           {busy ? "Searching…" : "Find booking"}
         </button>
         {error && <p className="text-sm text-red-600">{error}</p>}
       </form>
 
       {result && (
-        <div className="mt-6 space-y-4 rounded-md border border-border bg-white p-5">
+        <div className="panel mt-6 space-y-4 p-5">
           <div>
             <p className="font-mono text-sm font-semibold text-brand">
               {result.reference
@@ -151,7 +140,7 @@ export default function GuestManagePanel() {
           </dl>
 
           {result.paymentStatus !== "Cancelled" ? (
-            <div className="rounded-md border border-border bg-surface p-4 text-sm">
+            <div className="rounded-lg bg-surface p-4 text-sm">
               <p className="font-semibold text-foreground">Need to cancel?</p>
               <p className="mt-1 text-muted">
                 Guest bookings can&apos;t be cancelled online. Please call us

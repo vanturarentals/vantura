@@ -47,7 +47,7 @@ export default async function ManageBookingDetailPage({
     : booking.id.slice(0, 8).toUpperCase();
 
   return (
-    <div className="flex min-h-screen flex-col bg-white">
+    <div className="flex min-h-screen flex-col bg-surface">
       <Header />
       <main className="mx-auto w-full max-w-3xl flex-1 px-5 py-12">
         <Link
@@ -60,7 +60,7 @@ export default async function ManageBookingDetailPage({
         <h1 className="mt-4 text-3xl font-bold text-brand">Booking details</h1>
         <p className="mt-1 font-mono text-sm font-semibold text-muted">{ref}</p>
 
-        <dl className="mt-8 space-y-3 rounded-md border border-border bg-white p-5 text-sm">
+        <dl className="panel mt-8 space-y-3 p-5 text-sm">
           <Row label="Van" value={van?.name ?? "Van"} />
           <Row label="Status" value={booking.paymentStatus} />
           <Row label="Customer" value={booking.customerName} />
@@ -92,7 +92,7 @@ export default async function ManageBookingDetailPage({
             refundStatus={booking.refundStatus}
           />
 
-          <div className="rounded-md border border-border bg-surface p-4 text-sm">
+          <div className="panel bg-surface p-4 text-sm">
             <p className="font-semibold text-foreground">Need a change?</p>
             <p className="mt-1 text-muted">
               Date or location changes aren&apos;t available online yet. Email{" "}

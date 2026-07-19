@@ -225,58 +225,53 @@ export default function AuthModal({
       <button
         type="button"
         aria-label="Close"
-        className="absolute inset-0 cursor-pointer bg-black/45"
+        className="absolute inset-0 cursor-pointer bg-black/40"
         onClick={onClose}
       />
       <div
         role="dialog"
         aria-modal="true"
         aria-labelledby="auth-modal-title"
-        className="relative z-10 w-full max-w-md rounded-md bg-white p-6 shadow-2xl sm:p-8"
+        className="panel relative z-10 w-full max-w-md p-6 sm:p-8"
       >
         <button
           type="button"
           onClick={onClose}
-          className="absolute right-4 top-4 cursor-pointer text-xl leading-none text-muted hover:text-foreground"
+          className="absolute right-4 top-4 text-xl leading-none text-muted hover:text-foreground"
           aria-label="Close dialog"
         >
           ×
         </button>
 
+        <p className="wordmark text-base">vantura <span>rentals</span></p>
         <h2
           id="auth-modal-title"
-          className="pr-8 text-2xl font-extrabold tracking-tight text-brand"
+          className="mt-4 pr-8 text-2xl font-extrabold tracking-tight text-brand"
         >
-          Book faster. Travel smarter.
+          {step === "verify" ? "Verify your email" : "Log in"}
         </h2>
         <p className="mt-2 text-sm text-muted">
           {step === "verify"
             ? "Verify your email to unlock manage bookings and saved details."
             : step === "password"
-              ? "Choose a password to sign in or create your account."
-              : "Access seamless checkouts and easy trip management when you log in or create an account."}
+              ? "Enter your password to sign in or create your account."
+              : "Access seamless checkouts and easy trip management."}
         </p>
 
         {step === "email" && (
           <form onSubmit={onEmailContinue} className="mt-6 space-y-3">
             <label className="block space-y-1.5">
-              <span className="text-xs font-semibold text-muted">
-                Your email address
-              </span>
+              <span className="field-label">Email</span>
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="name@mail.com"
                 autoComplete="email"
-                className="w-full rounded border border-border bg-white px-3 py-2.5 text-sm outline-none focus:border-brand"
+                className="field"
               />
             </label>
-            <button
-              type="submit"
-              disabled={busy}
-              className="w-full cursor-pointer rounded bg-brand px-5 py-3 text-sm font-semibold text-white hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-60"
-            >
+            <button type="submit" disabled={busy} className="btn-primary w-full py-3">
               Continue with email
             </button>
           </form>
@@ -295,52 +290,46 @@ export default function AuthModal({
                   setPasswordConfirm("");
                   setError(null);
                 }}
-                className="ml-2 cursor-pointer text-sm font-semibold text-brand hover:underline"
+                className="ml-2 text-sm font-semibold text-brand hover:underline"
               >
                 Change
               </button>
             </p>
             <label className="block space-y-1.5">
-              <span className="text-xs font-semibold text-muted">Password</span>
+              <span className="field-label">Password</span>
               <input
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 autoComplete="new-password"
                 minLength={8}
-                className="w-full rounded border border-border bg-white px-3 py-2.5 text-sm outline-none focus:border-brand"
+                className="field"
               />
             </label>
             <label className="block space-y-1.5">
-              <span className="text-xs font-semibold text-muted">
-                Confirm password
-              </span>
+              <span className="field-label">Confirm password</span>
               <input
                 type="password"
                 value={passwordConfirm}
                 onChange={(e) => setPasswordConfirm(e.target.value)}
                 autoComplete="new-password"
                 minLength={8}
-                className="w-full rounded border border-border bg-white px-3 py-2.5 text-sm outline-none focus:border-brand"
+                className="field"
               />
             </label>
             <p className="text-xs text-muted">
               New here? We&apos;ll create your account. You&apos;ll need to
               verify your email before managing bookings.
             </p>
-            <button
-              type="submit"
-              disabled={busy}
-              className="w-full cursor-pointer rounded bg-brand px-5 py-3 text-sm font-semibold text-white hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {busy ? "Please wait…" : "Continue"}
+            <button type="submit" disabled={busy} className="btn-primary w-full py-3">
+              {busy ? "Please wait…" : "Log in"}
             </button>
           </form>
         )}
 
         {step === "verify" && (
           <div className="mt-6 space-y-4">
-            <p className="rounded-md border border-brand/20 bg-brand-muted/50 p-4 text-sm text-foreground">
+            <p className="rounded-lg bg-brand-muted/60 p-4 text-sm text-foreground">
               We sent a verification link to{" "}
               <span className="font-semibold">{email.trim()}</span>. Open it to
               activate your account, then come back and sign in.
@@ -349,7 +338,7 @@ export default function AuthModal({
               type="button"
               disabled={busy}
               onClick={resendVerification}
-              className="w-full cursor-pointer rounded border border-border bg-white px-5 py-3 text-sm font-semibold hover:bg-surface disabled:cursor-not-allowed disabled:opacity-60"
+              className="btn-secondary w-full py-3"
             >
               {busy ? "Sending…" : "Resend verification email"}
             </button>
@@ -362,7 +351,7 @@ export default function AuthModal({
                 setError(null);
                 setMessage(null);
               }}
-              className="w-full cursor-pointer text-sm font-semibold text-brand hover:underline"
+              className="btn-ghost w-full"
             >
               Use a different email
             </button>
@@ -382,7 +371,7 @@ export default function AuthModal({
                 type="button"
                 disabled={busy}
                 onClick={() => continueWithProvider("google")}
-                className="flex cursor-pointer items-center justify-center gap-2 rounded border border-border bg-white px-3 py-2.5 text-sm font-semibold hover:bg-surface disabled:cursor-not-allowed disabled:opacity-60"
+                className="btn-secondary gap-2 py-2.5 disabled:opacity-60"
               >
                 <GoogleIcon />
                 Google
@@ -391,7 +380,7 @@ export default function AuthModal({
                 type="button"
                 disabled={busy}
                 onClick={() => continueWithProvider("apple")}
-                className="flex cursor-pointer items-center justify-center gap-2 rounded border border-border bg-white px-3 py-2.5 text-sm font-semibold hover:bg-surface disabled:cursor-not-allowed disabled:opacity-60"
+                className="btn-secondary gap-2 py-2.5 disabled:opacity-60"
               >
                 <AppleIcon />
                 Apple

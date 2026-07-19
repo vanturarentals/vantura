@@ -25,7 +25,7 @@ export default function CancelBookingButton({
 
   if (paymentStatus === "Cancelled") {
     return (
-      <div className="rounded-md border border-border bg-surface p-4 text-sm">
+      <div className="panel bg-surface p-4 text-sm">
         <p className="font-semibold text-foreground">Cancelled</p>
         <p className="mt-1 text-muted">
           {refundStatus === "Pending"
@@ -66,7 +66,7 @@ export default function CancelBookingButton({
   if (!allowed) {
     const phone = supportConfig.phone;
     return (
-      <div className="rounded-md border border-border bg-surface p-4 text-sm">
+      <div className="panel bg-surface p-4 text-sm">
         <p className="font-semibold text-foreground">
           Online cancel unavailable
         </p>
@@ -92,17 +92,17 @@ export default function CancelBookingButton({
   }
 
   return (
-    <div className="rounded-md border border-border bg-white p-4">
+    <div className="panel p-4">
       <p className="text-sm font-semibold text-foreground">Cancel this hire</p>
       <p className="mt-1 text-sm text-muted">
-        Free online cancel when pick-up is 48+ hours away. Paid bookings are
-        flagged in Airtable for a refund.
+        You can cancel for free up to 48 hours before pick-up. Paid bookings are
+        flagged for a refund.
       </p>
       {!confirming ? (
         <button
           type="button"
           onClick={() => setConfirming(true)}
-          className="mt-4 rounded border border-red-200 bg-red-50 px-4 py-2 text-sm font-semibold text-red-700 hover:bg-red-100"
+          className="btn-danger-outline mt-4"
         >
           Cancel booking
         </button>
@@ -116,7 +116,7 @@ export default function CancelBookingButton({
               type="button"
               disabled={busy}
               onClick={cancel}
-              className="rounded bg-red-700 px-4 py-2 text-sm font-semibold text-white hover:bg-red-800 disabled:opacity-60"
+              className="rounded-lg bg-red-700 px-4 py-2 text-sm font-semibold text-white hover:bg-red-800 disabled:opacity-60"
             >
               {busy ? "Cancelling…" : "Yes, cancel"}
             </button>
@@ -124,7 +124,7 @@ export default function CancelBookingButton({
               type="button"
               disabled={busy}
               onClick={() => setConfirming(false)}
-              className="text-sm font-medium text-muted hover:text-brand"
+              className="btn-ghost"
             >
               Keep booking
             </button>

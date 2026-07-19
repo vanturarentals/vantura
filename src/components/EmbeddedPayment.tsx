@@ -27,7 +27,7 @@ const ELEMENT_STYLE = {
 };
 
 const fieldShell =
-  "rounded border border-border bg-white px-3 py-2.5 transition-colors focus-within:border-brand";
+  "rounded-lg border border-border bg-white px-3 py-2.5 transition-colors focus-within:border-brand";
 
 interface Props {
   /** Creates a PaymentIntent and returns its client secret. */
@@ -98,7 +98,7 @@ export default function EmbeddedPayment({ fetchClientSecret }: Props) {
             colorDanger: "#dc2626",
             fontFamily:
               "Plus Jakarta Sans, ui-sans-serif, system-ui, sans-serif",
-            borderRadius: "4px",
+            borderRadius: "8px",
           },
         },
       }}
@@ -152,19 +152,16 @@ function CheckoutForm({ clientSecret }: { clientSecret: string }) {
   }
 
   return (
-    <form
-      onSubmit={onSubmit}
-      className="space-y-4 rounded-md border border-border bg-white p-6"
-    >
+    <form onSubmit={onSubmit} className="panel space-y-4 p-6">
       <div>
-        <h2 className="text-lg font-bold text-brand">Card details</h2>
+        <h2 className="text-lg font-bold text-brand">Payment details</h2>
         <p className="mt-1 text-sm text-muted">
           Pay securely with Stripe. Your card details never touch our servers.
         </p>
       </div>
 
       <label className="block space-y-1.5">
-        <span className="text-xs font-semibold text-muted">Card number</span>
+        <span className="field-label">Card number</span>
         <div className={fieldShell}>
           <CardNumberElement
             options={{ style: ELEMENT_STYLE, showIcon: true }}
@@ -174,13 +171,13 @@ function CheckoutForm({ clientSecret }: { clientSecret: string }) {
 
       <div className="grid grid-cols-2 gap-4">
         <label className="block space-y-1.5">
-          <span className="text-xs font-semibold text-muted">Expiry</span>
+          <span className="field-label">Expiry</span>
           <div className={fieldShell}>
             <CardExpiryElement options={{ style: ELEMENT_STYLE }} />
           </div>
         </label>
         <label className="block space-y-1.5">
-          <span className="text-xs font-semibold text-muted">CVC</span>
+          <span className="field-label">CVC</span>
           <div className={fieldShell}>
             <CardCvcElement options={{ style: ELEMENT_STYLE }} />
           </div>
@@ -192,8 +189,12 @@ function CheckoutForm({ clientSecret }: { clientSecret: string }) {
       <button
         type="submit"
         disabled={!stripe || busy}
-        className="w-full rounded bg-brand px-6 py-3 text-sm font-semibold text-white hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-60"
+        className="btn-primary w-full gap-2 py-3"
       >
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+          <rect x="5" y="11" width="14" height="10" rx="2" />
+          <path d="M8 11V7a4 4 0 0 1 8 0v4" />
+        </svg>
         {busy ? "Processing…" : "Pay now"}
       </button>
     </form>

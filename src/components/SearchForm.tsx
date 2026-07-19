@@ -124,25 +124,29 @@ export default function SearchForm({ defaults, variant = "hero" }: Props) {
     );
   }
 
-  const field =
-    "rounded border border-border bg-white px-3 py-2.5 text-sm text-foreground outline-none focus:border-brand";
-  const dateField = `${field} min-w-0 flex-[2]`;
-  const timeField = `${field} w-[6.5rem] shrink-0 sm:w-[7rem]`;
+  const isHero = variant === "hero";
+  const labelClass = isHero
+    ? "text-xs font-semibold text-white/75"
+    : "field-label";
+  const dateField = isHero
+    ? "field min-w-0 flex-[2] border-transparent bg-white"
+    : "field min-w-0 flex-[2]";
+  const timeField = isHero
+    ? "field w-[6.5rem] shrink-0 border-transparent bg-white sm:w-[7rem]"
+    : "field w-[6.5rem] shrink-0 sm:w-[7rem]";
 
   return (
     <form
       onSubmit={onSubmit}
       className={
-        variant === "hero"
-          ? "w-full rounded-md bg-white p-4 shadow-xl ring-1 ring-black/5 sm:p-5"
-          : "w-full rounded-md border border-border bg-white p-4"
+        isHero
+          ? "w-full rounded-lg bg-brand p-4 sm:p-5"
+          : "panel w-full p-4"
       }
     >
       <div className="grid grid-cols-1 gap-3 lg:grid-cols-[1fr_1fr_auto] lg:items-end">
         <label className="flex min-w-0 flex-col gap-1.5">
-          <span className="text-xs font-semibold text-muted">
-            Pick-up date &amp; time
-          </span>
+          <span className={labelClass}>Pick-up date &amp; time</span>
           <div className="flex gap-2">
             <input
               type="date"
@@ -166,9 +170,7 @@ export default function SearchForm({ defaults, variant = "hero" }: Props) {
         </label>
 
         <label className="flex min-w-0 flex-col gap-1.5">
-          <span className="text-xs font-semibold text-muted">
-            Drop-off date &amp; time
-          </span>
+          <span className={labelClass}>Return date &amp; time</span>
           <div className="flex gap-2">
             <input
               type="date"
@@ -180,7 +182,7 @@ export default function SearchForm({ defaults, variant = "hero" }: Props) {
               value={dropoffTime}
               onChange={(e) => setDropoffTime(e.target.value)}
               className={timeField}
-              aria-label="Drop-off time"
+              aria-label="Return time"
             >
               {TIME_OPTIONS.map((t) => (
                 <option key={t} value={t}>
@@ -193,13 +195,24 @@ export default function SearchForm({ defaults, variant = "hero" }: Props) {
 
         <button
           type="submit"
-          className="rounded bg-brand px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-hover lg:self-end"
+          className={
+            isHero
+              ? "inline-flex items-center justify-center gap-2 rounded-lg bg-white px-6 py-2.5 text-sm font-semibold text-brand transition-colors hover:bg-brand-muted lg:self-end"
+              : "btn-primary lg:self-end"
+          }
         >
-          Search vans
+          Search
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden>
+            <path d="M5 12h14M13 6l6 6-6 6" />
+          </svg>
         </button>
       </div>
 
-      {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
+      {error && (
+        <p className={`mt-3 text-sm ${isHero ? "text-red-200" : "text-red-600"}`}>
+          {error}
+        </p>
+      )}
     </form>
   );
 }

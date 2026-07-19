@@ -12,10 +12,7 @@ export default function CancelledPage() {
           No payment was taken. Your temporary hold will be released
           automatically.
         </p>
-        <Link
-          href="/"
-          className="rounded bg-brand px-5 py-2.5 text-sm font-semibold text-white hover:bg-brand-hover"
-        >
+        <Link href="/" className="btn-primary">
           Back to home
         </Link>
       </main>
