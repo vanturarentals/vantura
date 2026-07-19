@@ -54,7 +54,7 @@ export default function Home() {
         <div className="relative h-[48vh] min-h-[380px] w-full overflow-hidden sm:h-[54vh] sm:min-h-[440px]">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/hero-van-street.jpg"
+            src="/hero-van-branded.jpg"
             alt="White hire van on a residential UK street"
             className="h-full w-full object-cover object-[center_42%]"
           />
