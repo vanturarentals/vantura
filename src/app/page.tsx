@@ -34,11 +34,11 @@ export default function Home() {
         <div className="relative h-[52vh] min-h-[360px] w-full overflow-hidden sm:h-[58vh]">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/hero-coastal.jpg"
-            alt="White hire van parked on a coastal road"
-            className="h-full w-full object-cover object-[72%_center] sm:object-[68%_center]"
+            src="/hero-van-right.jpg"
+            alt="White hire van on a London street"
+            className="h-full w-full object-cover object-center"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/40 to-black/5" />
+          <div className="absolute inset-0 bg-gradient-to-r from-black/75 via-black/45 to-transparent" />
           <div className="absolute inset-x-0 bottom-0 mx-auto max-w-6xl px-5 pb-28 pt-20 sm:pb-32">
             <div className="max-w-xl animate-fade-rise">
               <h1 className="text-3xl font-extrabold leading-tight tracking-tight text-white sm:text-5xl">
