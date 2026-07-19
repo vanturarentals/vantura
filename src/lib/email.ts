@@ -19,6 +19,7 @@ async function sendEmail(input: {
   to: string;
   subject: string;
   html: string;
+  replyTo?: string;
 }): Promise<boolean> {
   if (!emailConfig.isConfigured) {
     console.info(
@@ -39,6 +40,7 @@ async function sendEmail(input: {
         to: [input.to],
         subject: input.subject,
         html: input.html,
+        ...(input.replyTo ? { reply_to: input.replyTo } : {}),
       }),
     });
 
@@ -258,6 +260,76 @@ export async function sendBookingCancelledEmail(
       </p>
       <p style="margin:0;font-size:14px;line-height:1.55;color:#6b726e;">
         Need another van? Book again anytime at Vantura Rentals.
+      </p>
+    `,
+    ),
+  });
+}
+
+/** Contact form → team inbox (reply goes to the customer). */
+export async function sendContactEnquiryEmail(input: {
+  fromEmail: string;
+  subject: string;
+  message: string;
+  name?: string | null;
+}): Promise<boolean> {
+  const to = supportConfig.email.trim() || emailConfig.notifyAddress.trim();
+  if (!to) return false;
+
+  const name = input.name?.trim();
+  const messageHtml = escapeHtml(input.message).replace(/\n/g, "<br/>");
+
+  return sendEmail({
+    to,
+    replyTo: input.fromEmail,
+    subject: `Contact: ${input.subject}`,
+    html: layout(
+      "New contact message",
+      `
+      <table role="presentation" width="100%" style="font-size:14px;border-collapse:collapse;margin:0 0 18px;">
+        ${
+          name
+            ? `<tr><td style="padding:8px 0;color:#6b726e;">Name</td><td style="padding:8px 0;text-align:right;font-weight:600;">${escapeHtml(name)}</td></tr>`
+            : ""
+        }
+        <tr><td style="padding:8px 0;color:#6b726e;${name ? "border-top:1px solid #d9ddd9;" : ""}">From</td><td style="padding:8px 0;text-align:right;${name ? "border-top:1px solid #d9ddd9;" : ""}"><a href="mailto:${escapeHtml(input.fromEmail)}" style="color:#1a3932;font-weight:600;">${escapeHtml(input.fromEmail)}</a></td></tr>
+        <tr><td style="padding:8px 0;color:#6b726e;border-top:1px solid #d9ddd9;">Subject</td><td style="padding:8px 0;text-align:right;font-weight:600;border-top:1px solid #d9ddd9;">${escapeHtml(input.subject)}</td></tr>
+      </table>
+      <p style="margin:0 0 8px;font-size:13px;font-weight:600;color:#6b726e;">Message</p>
+      <p style="margin:0;font-size:15px;line-height:1.55;color:#1a1a1a;">${messageHtml}</p>
+    `,
+    ),
+  });
+}
+
+/** Confirmation to the customer that their contact message was received. */
+export async function sendContactConfirmationEmail(input: {
+  to: string;
+  subject: string;
+  message: string;
+  name?: string | null;
+}): Promise<boolean> {
+  const first = input.name?.trim().split(/\s+/)[0];
+  const greeting = first ? `Hi ${escapeHtml(first)},` : "Hi,";
+  const messageHtml = escapeHtml(input.message).replace(/\n/g, "<br/>");
+
+  return sendEmail({
+    to: input.to,
+    subject: `We received your message — ${input.subject}`,
+    html: layout(
+      "Message received",
+      `
+      <p style="margin:0 0 14px;font-size:15px;line-height:1.55;">${greeting}</p>
+      <p style="margin:0 0 14px;font-size:15px;line-height:1.55;color:#6b726e;">
+        Thanks for contacting Vantura Rentals. We’ve received your message and will get back to you as soon as we can.
+      </p>
+      <p style="margin:0 0 8px;font-size:13px;font-weight:600;color:#6b726e;">Your subject</p>
+      <p style="margin:0 0 14px;font-size:15px;font-weight:600;">${escapeHtml(input.subject)}</p>
+      <p style="margin:0 0 8px;font-size:13px;font-weight:600;color:#6b726e;">Your message</p>
+      <p style="margin:0 0 18px;font-size:14px;line-height:1.55;color:#6b726e;">${messageHtml}</p>
+      <p style="margin:0;font-size:13px;line-height:1.55;color:#6b726e;">
+        Need to add anything? Reply to this email or write to
+        <a href="mailto:${escapeHtml(supportConfig.email)}" style="color:#1a3932;">${escapeHtml(supportConfig.email)}</a>.
       </p>
     `,
     ),

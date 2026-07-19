@@ -1,12 +1,14 @@
 /** Public support contacts for guest cancel messaging, etc. */
 export const supportConfig = {
-  email: process.env.NEXT_PUBLIC_SUPPORT_EMAIL?.trim() || "hello@vanturarentals.com",
-  /** E.164 or display number; leave empty until you publish a real line. */
-  phone: process.env.NEXT_PUBLIC_SUPPORT_PHONE?.trim() || "",
+  email:
+    process.env.NEXT_PUBLIC_SUPPORT_EMAIL?.trim() ||
+    "vanturarentals@gmail.com",
+  /** Digits for tel: links; display can differ. */
+  phone: process.env.NEXT_PUBLIC_SUPPORT_PHONE?.trim() || "07949943055",
   phoneDisplay:
     process.env.NEXT_PUBLIC_SUPPORT_PHONE_DISPLAY?.trim() ||
     process.env.NEXT_PUBLIC_SUPPORT_PHONE?.trim() ||
-    "",
+    "07949 943055",
 };
 
 /** True when pick-up is at least `hours` away from now. */
