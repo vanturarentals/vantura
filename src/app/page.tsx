@@ -29,6 +29,12 @@ export default function Home() {
   return (
     <div className="flex min-h-screen flex-col bg-white">
       <Header />
+      <div className="bg-brand px-5 py-2.5 text-center">
+        <p className="text-sm font-semibold tracking-wide text-white">
+          20% off your first booking — use code{" "}
+          <span className="font-bold tracking-wider">FIRST20</span> at checkout
+        </p>
+      </div>
 
       <section className="relative">
         <div className="relative h-[48vh] min-h-[380px] w-full overflow-hidden sm:h-[54vh] sm:min-h-[440px]">
