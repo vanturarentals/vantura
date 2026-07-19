@@ -131,7 +131,7 @@ export default function SearchForm({ defaults, variant = "hero" }: Props) {
       onSubmit={onSubmit}
       className={
         isHero
-          ? "w-full rounded-xl border border-border bg-white p-4 sm:p-5"
+          ? "w-full rounded-xl border border-border bg-white p-4 shadow-md sm:p-5"
           : "panel w-full p-4"
       }
     >
