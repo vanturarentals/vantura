@@ -9,13 +9,13 @@ const TRUST = [
     icon: "van" as const,
   },
   {
-    title: "Fair fuel policy",
-    body: "Full to full",
-    icon: "fuel" as const,
+    title: "Transparent pricing",
+    body: "No hidden fees",
+    icon: "tag" as const,
   },
   {
     title: "Flexible hire",
-    body: "Daily, weekly, weekend",
+    body: "Available 24/7",
     icon: "clock" as const,
   },
   {
@@ -82,7 +82,7 @@ export default function Home() {
   );
 }
 
-function TrustIcon({ kind }: { kind: "van" | "fuel" | "clock" | "pin" }) {
+function TrustIcon({ kind }: { kind: "van" | "tag" | "clock" | "pin" }) {
   const common = {
     width: 22,
     height: 22,
@@ -93,11 +93,11 @@ function TrustIcon({ kind }: { kind: "van" | "fuel" | "clock" | "pin" }) {
     className: "mt-0.5 shrink-0 text-white/90",
   } as const;
 
-  if (kind === "fuel") {
+  if (kind === "tag") {
     return (
       <svg {...common} aria-hidden>
-        <path d="M3 22V8l7-5 7 5v14" />
-        <path d="M14 22V12h4a2 2 0 0 1 2 2v3a2 2 0 0 0 2 2h0V9l-3-3" />
+        <path d="M20.6 13.4 12.4 21.6a2 2 0 0 1-2.8 0L3 15V4h11l6.6 6.6a2 2 0 0 1 0 2.8z" />
+        <circle cx="8.5" cy="8.5" r="1.25" fill="currentColor" stroke="none" />
       </svg>
     );
   }
