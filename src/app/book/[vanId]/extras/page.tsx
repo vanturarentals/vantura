@@ -75,7 +75,7 @@ export default function ExtrasPage() {
                       type="button"
                       aria-label={`Decrease ${item.name}`}
                       onClick={() => setQty(item.id, q - 1)}
-                      className="flex h-9 w-9 items-center justify-center rounded-lg border border-border font-bold hover:bg-surface"
+                      className="btn-stepper"
                     >
                       −
                     </button>
@@ -84,7 +84,7 @@ export default function ExtrasPage() {
                       type="button"
                       aria-label={`Increase ${item.name}`}
                       onClick={() => setQty(item.id, q + 1)}
-                      className="flex h-9 w-9 items-center justify-center rounded-lg border border-border font-bold hover:bg-surface"
+                      className="btn-stepper"
                     >
                       +
                     </button>

@@ -169,11 +169,16 @@ button:not(:disabled),
   font-size: 0.875rem;
   font-weight: 600;
   color: #fff;
-  transition: background-color 150ms ease;
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+  transition:
+    background-color 150ms ease,
+    outline-color 150ms ease;
 }
 
 .btn-primary:hover:not(:disabled) {
   background: var(--brand-hover);
+  outline-color: var(--brand);
 }
 
 .btn-primary:disabled {
@@ -193,16 +198,20 @@ button:not(:disabled),
   font-size: 0.875rem;
   font-weight: 600;
   color: var(--foreground);
+  outline: 2px solid transparent;
+  outline-offset: 2px;
   transition:
     border-color 150ms ease,
     color 150ms ease,
-    background-color 150ms ease;
+    background-color 150ms ease,
+    outline-color 150ms ease;
 }
 
 .btn-secondary:hover:not(:disabled) {
   border-color: var(--brand);
   color: var(--brand);
   background: var(--brand-muted);
+  outline-color: var(--brand);
 }
 
 .btn-ghost {
@@ -216,11 +225,46 @@ button:not(:disabled),
   font-size: 0.875rem;
   font-weight: 600;
   color: var(--muted);
-  transition: color 150ms ease;
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+  transition:
+    color 150ms ease,
+    outline-color 150ms ease;
 }
 
 .btn-ghost:hover:not(:disabled) {
   color: var(--brand);
+  outline-color: var(--brand);
+}
+
+.btn-stepper {
+  display: inline-flex;
+  height: 2.25rem;
+  width: 2.25rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.5rem;
+  border: 1px solid var(--border);
+  background: #fff;
+  font-weight: 700;
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+  transition:
+    border-color 150ms ease,
+    background-color 150ms ease,
+    outline-color 150ms ease;
+}
+
+.btn-stepper:hover:not(:disabled) {
+  border-color: var(--brand);
+  background: var(--brand-muted);
+  outline-color: var(--brand);
+}
+
+.panel-aside {
+  border-radius: var(--radius);
+  border: 1.5px solid var(--brand);
+  background: #fff;
 }
 
 .btn-danger-outline {

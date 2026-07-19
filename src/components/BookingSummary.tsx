@@ -17,7 +17,7 @@ export default function BookingSummary({ draft }: Props) {
   const currency = draft.currency || "gbp";
 
   return (
-    <aside className="panel h-fit p-5">
+    <aside className="panel-aside h-fit p-5">
       <h2 className="text-sm font-bold text-foreground">Your hire summary</h2>
 
       <div className="mt-4 overflow-hidden rounded-lg bg-surface">
@@ -89,7 +89,7 @@ export default function BookingSummary({ draft }: Props) {
           pickupAt: draft.pickupAt,
           dropoffAt: draft.dropoffAt,
         }).toString()}`}
-        className="mt-4 block text-center text-sm font-medium text-brand hover:underline"
+        className="mt-4 block rounded-lg py-2 text-center text-sm font-medium text-brand outline outline-2 outline-transparent outline-offset-2 transition-[outline-color] hover:outline-brand"
       >
         Change search
       </Link>

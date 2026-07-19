@@ -130,7 +130,7 @@ export default function VanDetailsClient() {
           </div>
         </div>
 
-        <aside className="panel hidden h-fit p-5 lg:block">
+        <aside className="panel-aside hidden h-fit p-5 lg:block">
           <p className="text-sm text-muted">
             {formatShort(draft.pickupAt)} → {formatShort(draft.dropoffAt)}
           </p>
