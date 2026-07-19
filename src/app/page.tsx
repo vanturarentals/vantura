@@ -30,7 +30,22 @@ export default function Home() {
     <div className="flex min-h-screen flex-col bg-white">
       <Header />
       <div className="bg-brand px-5 py-2.5 text-center">
-        <p className="text-sm font-semibold tracking-wide text-white">
+        <p className="inline-flex items-center justify-center gap-2 text-sm font-semibold tracking-wide text-white">
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden
+            className="shrink-0"
+          >
+            <path d="M20.6 13.4 12.4 21.6a2 2 0 0 1-2.8 0L3 15V4h11l6.6 6.6a2 2 0 0 1 0 2.8z" />
+            <circle cx="8.5" cy="8.5" r="1.25" fill="currentColor" stroke="none" />
+          </svg>
           20% off your first booking
         </p>
       </div>
