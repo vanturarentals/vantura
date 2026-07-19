@@ -31,22 +31,24 @@ export default function Home() {
       <Header />
 
       <section className="relative">
-        <div className="relative h-[56vh] min-h-[400px] w-full overflow-hidden sm:h-[62vh]">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/hero-van-street.jpg"
-            alt="White hire van on a residential UK street"
-            className="h-full w-full object-cover object-center"
-          />
-          <div className="absolute inset-0 bg-gradient-to-r from-black/55 via-black/25 to-transparent" />
-          <div className="absolute inset-x-0 bottom-0 mx-auto max-w-6xl px-5 pb-32 pt-20 sm:pb-36">
-            <div className="max-w-2xl animate-fade-rise">
-              <h1 className="text-4xl font-extrabold leading-[1.05] tracking-tight text-white sm:text-5xl md:text-6xl">
-                Hire the right van, without the hassle.
-              </h1>
-              <p className="mt-4 max-w-xl text-lg font-medium text-white/90 sm:text-xl">
-                Flexible van hire across the UK for moving, work and weekends.
-              </p>
+        <div className="relative w-full overflow-hidden bg-[#14302a]">
+          <div className="relative mx-auto aspect-[3/2] w-full max-h-[min(68vh,720px)]">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/hero-van-street.jpg"
+              alt="White hire van on a residential UK street"
+              className="absolute inset-0 h-full w-full object-contain object-center"
+            />
+            <div className="absolute inset-0 bg-gradient-to-r from-black/50 via-black/20 to-transparent" />
+            <div className="absolute inset-x-0 bottom-0 mx-auto max-w-6xl px-5 pb-28 pt-16 sm:pb-32">
+              <div className="max-w-2xl animate-fade-rise">
+                <h1 className="text-4xl font-extrabold leading-[1.05] tracking-tight text-white sm:text-5xl md:text-6xl">
+                  Hire the right van, without the hassle.
+                </h1>
+                <p className="mt-4 max-w-xl text-lg font-medium text-white/90 sm:text-xl">
+                  Flexible van hire across the UK for moving, work and weekends.
+                </p>
+              </div>
             </div>
           </div>
         </div>
