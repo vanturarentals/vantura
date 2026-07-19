@@ -83,13 +83,13 @@ export default function Header() {
           </Link>
 
           <div className="flex items-center gap-5">
-            <nav className="hidden items-center gap-7 text-sm font-medium text-foreground md:flex">
+            <nav className="hidden items-center gap-7 text-sm font-semibold text-brand md:flex">
               {NAV.map((item) => (
-                <Link key={item.href} href={item.href} className="hover:text-brand">
+                <Link key={item.href} href={item.href} className="hover:text-brand-hover">
                   {item.label}
                 </Link>
               ))}
-              <Link href="/manage" className="hover:text-brand">
+              <Link href="/manage" className="hover:text-brand-hover">
                 Manage bookings
               </Link>
             </nav>
@@ -180,13 +180,13 @@ export default function Header() {
 
         {menuOpen && (
           <div className="border-t border-border bg-white px-5 py-4 md:hidden">
-            <nav className="flex flex-col gap-3 text-sm font-medium text-foreground">
+            <nav className="flex flex-col gap-3 text-sm font-semibold text-brand">
               {NAV.map((item) => (
                 <Link
                   key={item.href}
                   href={item.href}
                   onClick={() => setMenuOpen(false)}
-                  className="hover:text-brand"
+                  className="hover:text-brand-hover"
                 >
                   {item.label}
                 </Link>
@@ -194,7 +194,7 @@ export default function Header() {
               <Link
                 href="/manage"
                 onClick={() => setMenuOpen(false)}
-                className="hover:text-brand"
+                className="hover:text-brand-hover"
               >
                 Manage bookings
               </Link>
