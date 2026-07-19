@@ -1,5 +1,51 @@
 @import "tailwindcss";
 
+/* Alte Haas for letters — digits excluded so Plus Jakarta handles numbers. */
+@font-face {
+  font-family: "Alte Haas Grotesk";
+  src: url("/fonts/AlteHaasGroteskRegular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0000-002F, U+003A-10FFFF;
+}
+
+@font-face {
+  font-family: "Alte Haas Grotesk";
+  src: url("/fonts/AlteHaasGroteskRegular.ttf") format("truetype");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0000-002F, U+003A-10FFFF;
+}
+
+@font-face {
+  font-family: "Alte Haas Grotesk";
+  src: url("/fonts/AlteHaasGroteskBold.ttf") format("truetype");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0000-002F, U+003A-10FFFF;
+}
+
+@font-face {
+  font-family: "Alte Haas Grotesk";
+  src: url("/fonts/AlteHaasGroteskBold.ttf") format("truetype");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0000-002F, U+003A-10FFFF;
+}
+
+@font-face {
+  font-family: "Alte Haas Grotesk";
+  src: url("/fonts/AlteHaasGroteskBold.ttf") format("truetype");
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0000-002F, U+003A-10FFFF;
+}
+
 :root {
   --background: #ffffff;
   --foreground: #1a1a1a;
@@ -10,6 +56,7 @@
   --border: #d9ddd9;
   --muted: #6b726e;
   --radius: 0.5rem;
+  --font-alte-haas: "Alte Haas Grotesk";
 }
 
 @theme inline {
@@ -21,13 +68,14 @@
   --color-surface: var(--surface);
   --color-border: var(--border);
   --color-muted: var(--muted);
-  --font-sans: var(--font-alte-haas);
+  --font-sans: var(--font-alte-haas), var(--font-jakarta);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-alte-haas), ui-sans-serif, system-ui, sans-serif;
+  font-family: var(--font-alte-haas), var(--font-jakarta), ui-sans-serif,
+    system-ui, sans-serif;
   font-weight: 400;
 }
 

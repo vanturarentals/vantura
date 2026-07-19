@@ -18,7 +18,8 @@ const stripePromise = publishableKey ? loadStripe(publishableKey) : null;
 const ELEMENT_STYLE = {
   base: {
     color: "#1a1a1a",
-    fontFamily: "Alte Haas Grotesk, ui-sans-serif, system-ui, sans-serif",
+    fontFamily:
+      "Alte Haas Grotesk, Plus Jakarta Sans, ui-sans-serif, system-ui, sans-serif",
     fontSize: "14px",
     fontSmoothing: "antialiased" as const,
     "::placeholder": { color: "#6b726e" },
@@ -97,7 +98,7 @@ export default function EmbeddedPayment({ fetchClientSecret }: Props) {
             colorText: "#1a1a1a",
             colorDanger: "#dc2626",
             fontFamily:
-              "Alte Haas Grotesk, ui-sans-serif, system-ui, sans-serif",
+              "Alte Haas Grotesk, Plus Jakarta Sans, ui-sans-serif, system-ui, sans-serif",
             borderRadius: "8px",
           },
         },
