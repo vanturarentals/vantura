@@ -17,14 +17,14 @@ export default async function ContactPage() {
   return (
     <div className="flex min-h-screen flex-col bg-surface">
       <Header />
-      <main className="mx-auto w-full max-w-3xl flex-1 px-5 py-12">
+      <main className="mx-auto w-full max-w-5xl flex-1 px-5 py-12">
         <h1 className="text-3xl font-bold text-brand">Contact Us</h1>
         <p className="mt-2 text-muted">
           Questions about a booking or hire? Send us a message and we&apos;ll
           get back to you.
         </p>
 
-        <div className="mt-10 grid grid-cols-1 gap-8 sm:grid-cols-[1fr_220px]">
+        <div className="mt-10 grid grid-cols-1 gap-8 lg:grid-cols-[1fr_300px]">
           <ContactForm
             lockedEmail={user?.email ?? null}
             defaultName={
@@ -36,12 +36,12 @@ export default async function ContactPage() {
             }
           />
 
-          <aside className="panel-aside h-fit space-y-6 p-5">
+          <aside className="panel-aside h-fit space-y-6 p-6 shadow-md">
             <div>
               <h2 className="field-label uppercase tracking-wide">Email</h2>
               <a
                 href={`mailto:${supportConfig.email}`}
-                className="mt-1 block text-base font-semibold text-brand hover:underline"
+                className="mt-1 block break-words text-base font-semibold text-brand hover:underline"
               >
                 {supportConfig.email}
               </a>

@@ -53,7 +53,7 @@ export default function ContactForm({ lockedEmail, defaultName }: Props) {
 
   if (sent) {
     return (
-      <div className="panel space-y-3 p-6">
+      <div className="panel-aside space-y-3 p-6 shadow-md">
         <h2 className="text-lg font-bold text-brand">Message sent</h2>
         <p className="text-sm text-muted">
           Thanks — we’ve emailed you a confirmation and will reply as soon as we
@@ -71,7 +71,7 @@ export default function ContactForm({ lockedEmail, defaultName }: Props) {
   }
 
   return (
-    <form onSubmit={onSubmit} className="panel space-y-4 p-6">
+    <form onSubmit={onSubmit} className="panel-aside space-y-4 p-6 shadow-md">
       <label className="block space-y-1.5">
         <span className="field-label">Your email</span>
         <input
