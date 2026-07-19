@@ -31,14 +31,14 @@ export default function Home() {
       <Header />
 
       <section className="relative">
-        <div className="relative h-[52vh] min-h-[360px] w-full overflow-hidden sm:h-[58vh]">
+        <div className="relative h-[56vh] min-h-[400px] w-full overflow-hidden sm:h-[62vh]">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/hero-van-right.jpg"
+            src="/hero-van-poster.jpg"
             alt="White hire van on a London street"
-            className="h-full w-full object-cover object-center"
+            className="h-full w-full scale-x-[-1] object-cover object-[18%_58%]"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-black/75 via-black/45 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/45 to-black/10" />
           <div className="absolute inset-x-0 bottom-0 mx-auto max-w-6xl px-5 pb-32 pt-20 sm:pb-36">
             <div className="max-w-2xl animate-fade-rise">
               <h1 className="text-4xl font-extrabold leading-[1.05] tracking-tight text-white sm:text-5xl md:text-6xl">
