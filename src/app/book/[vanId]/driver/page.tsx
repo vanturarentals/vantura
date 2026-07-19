@@ -134,8 +134,7 @@ function DriverForm({ draft }: { draft: BookingDraft }) {
       <div className="panel space-y-4 p-6">
         <h1 className="text-2xl font-bold text-brand">Driver details</h1>
         <p className="text-sm text-muted">
-          Drivers must be 21 or over. We&apos;ll send your confirmation to this
-          email.
+          We&apos;ll send your confirmation to this email.
           {emailLocked && (
             <>
               {" "}
