@@ -5,22 +5,22 @@ import SearchForm from "@/components/SearchForm";
 const TRUST = [
   {
     title: "Quality vans",
-    body: "Well-maintained commercial vans ready for the job.",
+    body: "to get the job done",
     icon: "van" as const,
   },
   {
     title: "Fair fuel policy",
-    body: "Clear fuel terms — no surprises at return.",
+    body: "Full to full",
     icon: "fuel" as const,
   },
   {
     title: "Flexible hire",
-    body: "Collect and return on your schedule, 24/7.",
+    body: "Daily, weekly, weekend",
     icon: "clock" as const,
   },
   {
     title: "Trusted locally",
-    body: "London hire with support when you need it.",
+    body: "Rated excellent",
     icon: "pin" as const,
   },
 ];
@@ -28,40 +28,35 @@ const TRUST = [
 export default function Home() {
   return (
     <div className="flex min-h-screen flex-col bg-white">
-      <Header variant="transparent" />
+      <Header />
 
       <section className="relative">
-        <div className="relative min-h-[88vh] w-full overflow-hidden sm:min-h-[92vh]">
+        <div className="relative h-[52vh] min-h-[360px] w-full overflow-hidden sm:h-[58vh]">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/hero-van-poster.jpg"
             alt="White hire van on a London street"
-            className="absolute inset-0 h-full w-full object-cover object-center"
+            className="h-full w-full object-cover object-center"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/35 to-black/25" />
-
-          <div className="relative mx-auto flex min-h-[88vh] max-w-6xl flex-col justify-end px-5 pb-10 pt-28 sm:min-h-[92vh] sm:pb-14 sm:pt-32">
-            <div className="max-w-2xl animate-fade-rise">
-              <p className="wordmark wordmark-on-dark mb-4 text-2xl sm:text-3xl">
-                vantura <span>rentals</span>
-              </p>
+          <div className="absolute inset-0 bg-gradient-to-r from-black/55 via-black/25 to-transparent" />
+          <div className="absolute inset-x-0 bottom-0 mx-auto max-w-6xl px-5 pb-28 pt-20 sm:pb-32">
+            <div className="max-w-xl animate-fade-rise">
               <h1 className="text-3xl font-extrabold leading-tight tracking-tight text-white sm:text-5xl">
                 Hire the right van, without the hassle.
               </h1>
-              <p className="mt-3 max-w-lg text-base text-white/85 sm:text-lg">
-                Premium van hire across London — clear rates, flexible pick-up,
-                ready when you are.
+              <p className="mt-3 max-w-md text-base text-white/90 sm:text-lg">
+                Flexible van hire across the UK for moving, work and weekends.
               </p>
-            </div>
-
-            <div className="mt-8 w-full animate-fade-rise animate-delay-1">
-              <SearchForm />
             </div>
           </div>
         </div>
+
+        <div className="relative z-10 mx-auto -mt-16 max-w-6xl px-5 pb-10 animate-fade-rise animate-delay-1">
+          <SearchForm />
+        </div>
       </section>
 
-      <section className="border-t border-border bg-surface">
+      <section className="bg-surface">
         <div className="mx-auto grid max-w-6xl grid-cols-1 gap-10 px-5 py-14 sm:grid-cols-2 lg:grid-cols-4">
           {TRUST.map((item, i) => (
             <div
@@ -89,7 +84,7 @@ function TrustIcon({ kind }: { kind: "van" | "fuel" | "clock" | "pin" }) {
     fill: "none",
     stroke: "currentColor",
     strokeWidth: 1.75,
-    className: "text-brand",
+    className: "text-foreground",
   } as const;
 
   if (kind === "fuel") {

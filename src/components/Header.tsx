@@ -13,24 +13,10 @@ const NAV = [
   { href: "/faq", label: "FAQ" },
 ];
 
-interface HeaderProps {
-  /** Transparent over a photo hero; solidifies after scroll. */
-  variant?: "solid" | "transparent";
-}
-
-export default function Header({ variant = "solid" }: HeaderProps) {
+export default function Header() {
   const [user, setUser] = useState<User | null>(null);
   const [authOpen, setAuthOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
-
-  const overHero = variant === "transparent" && !scrolled;
-  const linkClass = overHero
-    ? "text-white/90 hover:text-white"
-    : "text-foreground hover:text-brand";
-  const mutedLinkClass = overHero
-    ? "text-white/80 hover:text-white"
-    : "text-muted hover:text-brand";
 
   useEffect(() => {
     if (!isSupabaseConfigured()) return;
@@ -43,14 +29,6 @@ export default function Header({ variant = "solid" }: HeaderProps) {
     });
     return () => subscription.unsubscribe();
   }, []);
-
-  useEffect(() => {
-    if (variant !== "transparent") return;
-    const onScroll = () => setScrolled(window.scrollY > 40);
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, [variant]);
 
   async function signOut() {
     if (!isSupabaseConfigured()) return;
@@ -69,38 +47,32 @@ export default function Header({ variant = "solid" }: HeaderProps) {
 
   return (
     <>
-      <header
-        className={
-          overHero
-            ? "absolute inset-x-0 top-0 z-30 border-b border-transparent bg-transparent"
-            : "sticky top-0 z-30 border-b border-border bg-white"
-        }
-      >
+      <header className="sticky top-0 z-30 border-b border-border bg-white">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-5">
           <Link href="/" className="shrink-0">
-            <span className={`wordmark text-lg ${overHero ? "wordmark-on-dark" : ""}`}>
+            <span className="wordmark text-lg">
               vantura <span>rentals</span>
             </span>
           </Link>
 
-          <nav className="hidden items-center gap-7 text-sm font-medium md:flex">
+          <nav className="hidden items-center gap-7 text-sm font-medium text-foreground md:flex">
             {NAV.map((item) => (
-              <Link key={item.href} href={item.href} className={linkClass}>
+              <Link key={item.href} href={item.href} className="hover:text-brand">
                 {item.label}
               </Link>
             ))}
-            <Link href="/manage" className={linkClass}>
+            <Link href="/manage" className="hover:text-brand">
               Manage bookings
             </Link>
             {user ? (
-              <button type="button" onClick={signOut} className={linkClass}>
+              <button type="button" onClick={signOut} className="hover:text-brand">
                 Log out
               </button>
             ) : (
               <button
                 type="button"
                 onClick={() => setAuthOpen(true)}
-                className={linkClass}
+                className="hover:text-brand"
               >
                 Log in
               </button>
@@ -108,14 +80,17 @@ export default function Header({ variant = "solid" }: HeaderProps) {
           </nav>
 
           <div className="flex items-center gap-3 md:hidden">
-            <Link href="/manage" className={`text-sm font-medium ${mutedLinkClass}`}>
+            <Link
+              href="/manage"
+              className="text-sm font-medium text-muted hover:text-brand"
+            >
               Manage
             </Link>
             {user ? (
               <button
                 type="button"
                 onClick={signOut}
-                className={`text-sm font-medium ${mutedLinkClass}`}
+                className="text-sm font-medium text-muted hover:text-brand"
               >
                 Log out
               </button>
@@ -123,7 +98,7 @@ export default function Header({ variant = "solid" }: HeaderProps) {
               <button
                 type="button"
                 onClick={() => setAuthOpen(true)}
-                className={`text-sm font-medium ${mutedLinkClass}`}
+                className="text-sm font-medium text-muted hover:text-brand"
               >
                 Log in
               </button>
@@ -133,7 +108,7 @@ export default function Header({ variant = "solid" }: HeaderProps) {
               aria-label="Menu"
               aria-expanded={menuOpen}
               onClick={() => setMenuOpen((o) => !o)}
-              className={`flex h-9 w-9 items-center justify-center rounded ${overHero ? "text-white" : "text-brand"}`}
+              className="flex h-9 w-9 items-center justify-center rounded text-brand"
             >
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 {menuOpen ? (
