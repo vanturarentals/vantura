@@ -1,70 +1,15 @@
 @import "tailwindcss";
 
 /*
-  Panton for letters — digits excluded so Plus Jakarta handles numbers.
-  Light = body, Black = headings/UI emphasis, Narrow Black = wordmark.
+  Panton Demo is a Caps family (lowercase draws as capitals) — use it for
+  display headings/wordmark only. Body + secondary copy use Plus Jakarta Sans.
 */
 @font-face {
   font-family: "Panton";
-  src: url("/fonts/PantonDemo-Light.otf") format("opentype");
-  font-weight: 300;
-  font-style: normal;
-  font-display: swap;
-  unicode-range: U+0000-002F, U+003A-10FFFF;
-}
-
-@font-face {
-  font-family: "Panton";
-  src: url("/fonts/PantonDemo-Light.otf") format("opentype");
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-  unicode-range: U+0000-002F, U+003A-10FFFF;
-}
-
-@font-face {
-  font-family: "Panton";
-  src: url("/fonts/PantonDemo-Light.otf") format("opentype");
-  font-weight: 500;
-  font-style: normal;
-  font-display: swap;
-  unicode-range: U+0000-002F, U+003A-10FFFF;
-}
-
-@font-face {
-  font-family: "Panton";
-  src: url("/fonts/PantonDemo-LightItalic.otf") format("opentype");
-  font-weight: 300;
-  font-style: italic;
-  font-display: swap;
-  unicode-range: U+0000-002F, U+003A-10FFFF;
-}
-
-@font-face {
-  font-family: "Panton";
-  src: url("/fonts/PantonDemo-LightItalic.otf") format("opentype");
-  font-weight: 400;
-  font-style: italic;
-  font-display: swap;
-  unicode-range: U+0000-002F, U+003A-10FFFF;
-}
-
-@font-face {
-  font-family: "Panton";
-  src: url("/fonts/PantonDemo-LightItalic.otf") format("opentype");
-  font-weight: 500;
-  font-style: italic;
-  font-display: swap;
-  unicode-range: U+0000-002F, U+003A-10FFFF;
-}
-
-@font-face {
-  font-family: "Panton";
   src: url("/fonts/PantonDemo-Black.otf") format("opentype");
   font-weight: 600;
   font-style: normal;
   font-display: swap;
-  unicode-range: U+0000-002F, U+003A-10FFFF;
 }
 
 @font-face {
@@ -73,7 +18,6 @@
   font-weight: 700;
   font-style: normal;
   font-display: swap;
-  unicode-range: U+0000-002F, U+003A-10FFFF;
 }
 
 @font-face {
@@ -82,7 +26,6 @@
   font-weight: 800;
   font-style: normal;
   font-display: swap;
-  unicode-range: U+0000-002F, U+003A-10FFFF;
 }
 
 @font-face {
@@ -91,7 +34,6 @@
   font-weight: 600;
   font-style: italic;
   font-display: swap;
-  unicode-range: U+0000-002F, U+003A-10FFFF;
 }
 
 @font-face {
@@ -100,7 +42,6 @@
   font-weight: 700;
   font-style: italic;
   font-display: swap;
-  unicode-range: U+0000-002F, U+003A-10FFFF;
 }
 
 @font-face {
@@ -109,7 +50,6 @@
   font-weight: 800;
   font-style: italic;
   font-display: swap;
-  unicode-range: U+0000-002F, U+003A-10FFFF;
 }
 
 @font-face {
@@ -118,7 +58,6 @@
   font-weight: 700;
   font-style: normal;
   font-display: swap;
-  unicode-range: U+0000-002F, U+003A-10FFFF;
 }
 
 @font-face {
@@ -127,7 +66,6 @@
   font-weight: 800;
   font-style: normal;
   font-display: swap;
-  unicode-range: U+0000-002F, U+003A-10FFFF;
 }
 
 @font-face {
@@ -136,25 +74,6 @@
   font-weight: 700;
   font-style: italic;
   font-display: swap;
-  unicode-range: U+0000-002F, U+003A-10FFFF;
-}
-
-@font-face {
-  font-family: "Panton Narrow";
-  src: url("/fonts/PantonNarrowDemo-Light.otf") format("opentype");
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-  unicode-range: U+0000-002F, U+003A-10FFFF;
-}
-
-@font-face {
-  font-family: "Panton Narrow";
-  src: url("/fonts/PantonNarrowDemo-LightItalic.otf") format("opentype");
-  font-weight: 400;
-  font-style: italic;
-  font-display: swap;
-  unicode-range: U+0000-002F, U+003A-10FFFF;
 }
 
 :root {
@@ -180,14 +99,13 @@
   --color-surface: var(--surface);
   --color-border: var(--border);
   --color-muted: var(--muted);
-  --font-sans: var(--font-panton), var(--font-jakarta);
+  --font-sans: var(--font-jakarta);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-panton), var(--font-jakarta), ui-sans-serif, system-ui,
-    sans-serif;
+  font-family: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
   font-weight: 400;
 }
 
@@ -197,6 +115,8 @@ h3,
 h4,
 h5,
 h6 {
+  font-family: var(--font-panton), var(--font-jakarta), ui-sans-serif, system-ui,
+    sans-serif;
   font-weight: 800;
 }
 
