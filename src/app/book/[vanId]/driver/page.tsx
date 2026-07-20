@@ -6,6 +6,8 @@ import Link from "next/link";
 import BookingSteps from "@/components/BookingSteps";
 import BookingSummary from "@/components/BookingSummary";
 import { useBookingDraft, writeDraft } from "@/lib/use-booking-draft";
+import { completeBookingStep } from "@/lib/booking-progress";
+import { useBookingStepGuard } from "@/lib/use-booking-step-guard";
 import type { BookingDraft } from "@/lib/booking-draft";
 import { createClient } from "@/lib/supabase/client";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
@@ -27,6 +29,7 @@ function digitsOnly(value: string): string {
 export default function DriverPage() {
   const { vanId } = useParams<{ vanId: string }>();
   const draft = useBookingDraft(vanId);
+  useBookingStepGuard(vanId, "driver");
 
   if (!draft) {
     return (
@@ -125,7 +128,7 @@ function DriverForm({ draft }: { draft: BookingDraft }) {
       setError("Drivers must be 21 or over.");
       return;
     }
-    writeDraft({ ...draft, driver });
+    writeDraft(completeBookingStep({ ...draft, driver }, 2));
     router.push(`/book/${draft.vanId}/licence`);
   }
 
@@ -263,7 +266,7 @@ function DriverForm({ draft }: { draft: BookingDraft }) {
         <div className="flex justify-between pt-2">
           <button
             type="button"
-            onClick={() => router.push(`/book/${draft.vanId}/extras`)}
+            onClick={() => router.push(`/book/${draft.vanId}/protection`)}
             className="btn-ghost px-0"
           >
             ← Back

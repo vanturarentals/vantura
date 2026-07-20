@@ -5,6 +5,8 @@ import {
   saveDraft as persistDraft,
   type BookingDraft,
 } from "@/lib/booking-draft";
+import { normalizeProtectionId } from "@/lib/protections";
+import { inferFurthestStepIndex } from "@/lib/booking-progress";
 
 const listeners = new Set<() => void>();
 
@@ -42,6 +44,18 @@ function readCachedDraft(): BookingDraft | null {
   }
   try {
     cachedDraft = JSON.parse(raw) as BookingDraft;
+    if (cachedDraft.protectionId) {
+      cachedDraft = {
+        ...cachedDraft,
+        protectionId: normalizeProtectionId(cachedDraft.protectionId as string),
+      };
+    } else {
+      cachedDraft = { ...cachedDraft, protectionId: "basic" };
+    }
+    cachedDraft = {
+      ...cachedDraft,
+      furthestStepIndex: inferFurthestStepIndex(cachedDraft),
+    };
   } catch {
     cachedDraft = null;
   }

@@ -1,5 +1,7 @@
 /** Client-side booking draft stored between multi-step screens. */
 
+import type { ProtectionId } from "@/lib/protections";
+
 export interface BookingExtraQty {
   id: string;
   quantity: number;
@@ -17,6 +19,9 @@ export interface BookingDraft {
   dropoffLocation: string;
   differentReturn: boolean;
   extras: BookingExtraQty[];
+  protectionId: ProtectionId;
+  /** Highest booking step index the user may open (0 = extras only). */
+  furthestStepIndex?: number;
   driver: {
     title: string;
     firstName: string;

@@ -11,38 +11,24 @@ export interface ExtraItem {
 
 export const EXTRAS: ExtraItem[] = [
   {
-    id: "additional_driver",
-    name: "Additional driver",
+    id: "phone_charger",
+    name: "Phone charger",
+    description: "In-van USB phone charger for your hire.",
+    priceMinor: 1000,
+    chargeType: "flat",
+  },
+  {
+    id: "second_driver",
+    name: "Second driver",
     description: "Add another insured driver to the hire.",
     priceMinor: 1200,
     chargeType: "per_day",
   },
   {
-    id: "tail_lift",
-    name: "Tail-lift",
-    description: "Hydraulic lift for heavy loads.",
-    priceMinor: 2500,
-    chargeType: "per_day",
-  },
-  {
-    id: "towing_hitch",
-    name: "Towing hitch",
-    description: "Tow bar fitted for trailers.",
-    priceMinor: 1500,
-    chargeType: "per_day",
-  },
-  {
-    id: "ply_lining",
-    name: "Ply lining",
-    description: "Protective plywood lining for cargo.",
-    priceMinor: 800,
-    chargeType: "per_day",
-  },
-  {
-    id: "moving_kit",
-    name: "Moving equipment set",
-    description: "Blankets, straps and a trolley.",
-    priceMinor: 3500,
+    id: "pallet_truck",
+    name: "Pallet truck",
+    description: "Manual pallet truck for loading and unloading.",
+    priceMinor: 2000,
     chargeType: "flat",
   },
 ];

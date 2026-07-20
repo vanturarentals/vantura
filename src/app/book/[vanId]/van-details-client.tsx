@@ -53,6 +53,8 @@ export default function VanDetailsClient() {
           dropoffLocation: "",
           differentReturn: false,
           extras: [],
+          protectionId: "basic",
+          furthestStepIndex: 0,
           driver: {
             title: "Mr",
             firstName: "",

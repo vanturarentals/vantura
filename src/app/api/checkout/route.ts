@@ -5,6 +5,7 @@ import { getVanById, isVanAvailable } from "@/lib/inventory";
 import { attachLicencePhotos, attachStripeSession, createPendingBooking } from "@/lib/bookings";
 import { computeTotalMinor, isValidRange, rentalDays } from "@/lib/pricing";
 import { extrasTotalMinor, getExtra } from "@/lib/extras";
+import { getProtection, protectionTotalMinor } from "@/lib/protections";
 import { getCurrentUser } from "@/lib/supabase/server";
 import type { CheckoutRequest } from "@/lib/types";
 
@@ -35,6 +36,7 @@ export async function POST(request: NextRequest) {
     customerName,
     email,
     extras = [],
+    protectionId = "basic",
     licence,
   } = body;
 
@@ -79,8 +81,13 @@ export async function POST(request: NextRequest) {
 
     const days = rentalDays(startIso, endIso);
     const vanTotal = computeTotalMinor(van.dailyRateMinor, startIso, endIso);
+    const protection = getProtection(protectionId);
+    if (!protection) {
+      return NextResponse.json({ error: "Invalid protection package." }, { status: 400 });
+    }
     const extrasTotal = extrasTotalMinor(extras, days);
-    const totalMinor = vanTotal + extrasTotal;
+    const protectionTotal = protectionTotalMinor(protection.id, days);
+    const totalMinor = vanTotal + extrasTotal + protectionTotal;
     const currency = stripeConfig.currency;
 
     const booking = await createPendingBooking({
@@ -112,6 +119,7 @@ export async function POST(request: NextRequest) {
         q.quantity > 1 ? `${item.name} ×${q.quantity}` : item.name,
       );
     }
+    descriptionParts.push(protection.name);
 
     const stripe = getStripe();
     const paymentIntent = await stripe.paymentIntents.create({

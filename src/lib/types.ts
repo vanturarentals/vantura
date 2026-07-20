@@ -63,6 +63,7 @@ export interface CheckoutRequest {
   email: string;
   phone?: string;
   extras?: { id: string; quantity: number }[];
+  protectionId?: string;
   licence?: {
     frontDataUrl: string;
     frontName: string;

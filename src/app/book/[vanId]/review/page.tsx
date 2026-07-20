@@ -8,7 +8,9 @@ import BookingSummary from "@/components/BookingSummary";
 import EmbeddedPayment from "@/components/EmbeddedPayment";
 import SignInPrompt from "@/components/SignInPrompt";
 import { getExtra } from "@/lib/extras";
+import { getProtection } from "@/lib/protections";
 import { useBookingDraft } from "@/lib/use-booking-draft";
+import { useBookingStepGuard } from "@/lib/use-booking-step-guard";
 import { createClient } from "@/lib/supabase/client";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 
@@ -16,6 +18,7 @@ export default function ReviewPage() {
   const { vanId } = useParams<{ vanId: string }>();
   const router = useRouter();
   const draft = useBookingDraft(vanId);
+  useBookingStepGuard(vanId, "review");
   const [accepted, setAccepted] = useState(false);
   const [showPayment, setShowPayment] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -56,6 +59,7 @@ export default function ReviewPage() {
             email: draft.driver.email,
             phone: draft.driver.phone,
             extras: draft.extras,
+            protectionId: draft.protectionId ?? "basic",
             licence: draft.licence,
           }),
         });
@@ -105,6 +109,9 @@ export default function ReviewPage() {
     .filter(Boolean)
     .join(", ");
 
+  const protection = getProtection(current.protectionId ?? "basic");
+  const protectionLabel = protection?.name ?? "Basic";
+
   function startPayment() {
     setError(null);
     if (!accepted) {
@@ -139,13 +146,21 @@ export default function ReviewPage() {
               />
               <Section
                 title="Vehicle"
-                href={`/book/${vanId}`}
+                href={`/vans?${new URLSearchParams({
+                  pickupAt: current.pickupAt,
+                  dropoffAt: current.dropoffAt,
+                }).toString()}`}
                 lines={[current.vanName]}
               />
               <Section
                 title="Extras"
                 href={`/book/${vanId}/extras`}
                 lines={[extrasLabel || "None"]}
+              />
+              <Section
+                title="Protection"
+                href={`/book/${vanId}/protection`}
+                lines={[protectionLabel]}
               />
               <Section
                 title="Driver"

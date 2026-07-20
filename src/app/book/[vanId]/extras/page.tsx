@@ -7,6 +7,7 @@ import BookingSummary from "@/components/BookingSummary";
 import { EXTRAS } from "@/lib/extras";
 import { formatMoney, rentalDays } from "@/lib/pricing";
 import { useBookingDraft, writeDraft } from "@/lib/use-booking-draft";
+import { completeBookingStep } from "@/lib/booking-progress";
 
 export default function ExtrasPage() {
   const { vanId } = useParams<{ vanId: string }>();
@@ -32,7 +33,8 @@ export default function ExtrasPage() {
   }
 
   function setQty(id: string, quantity: number) {
-    const nextQty = Math.max(0, quantity);
+    let nextQty = Math.max(0, quantity);
+    if (id === "second_driver") nextQty = Math.min(1, nextQty);
     const extras = current.extras.filter((e) => e.id !== id);
     if (nextQty > 0) extras.push({ id, quantity: nextQty });
     writeDraft({ ...current, extras });
@@ -97,14 +99,24 @@ export default function ExtrasPage() {
           <div className="flex justify-between pt-2">
             <button
               type="button"
-              onClick={() => router.push(`/book/${vanId}`)}
+              onClick={() =>
+                router.push(
+                  `/vans?${new URLSearchParams({
+                    pickupAt: current.pickupAt,
+                    dropoffAt: current.dropoffAt,
+                  }).toString()}`,
+                )
+              }
               className="btn-ghost px-0"
             >
               ← Back
             </button>
             <button
               type="button"
-              onClick={() => router.push(`/book/${vanId}/driver`)}
+              onClick={() => {
+                writeDraft(completeBookingStep(current, 0));
+                router.push(`/book/${vanId}/protection`);
+              }}
               className="btn-primary"
             >
               Continue

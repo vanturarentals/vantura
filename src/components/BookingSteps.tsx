@@ -2,57 +2,64 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-
-const STEPS = [
-  { slug: "", label: "Vehicle" },
-  { slug: "extras", label: "Extras" },
-  { slug: "driver", label: "Driver" },
-  { slug: "licence", label: "Licence" },
-  { slug: "review", label: "Payment" },
-];
+import {
+  BOOKING_STEPS,
+  inferFurthestStepIndex,
+  isStepReachable,
+} from "@/lib/booking-progress";
+import { useBookingDraft } from "@/lib/use-booking-draft";
 
 export default function BookingSteps({ vanId }: { vanId: string }) {
   const pathname = usePathname();
+  const draft = useBookingDraft(vanId);
   const base = `/book/${vanId}`;
+  const furthest = draft ? inferFurthestStepIndex(draft) : 0;
 
   function isActive(slug: string) {
-    if (slug === "") return pathname === base;
     return pathname.endsWith(`/${slug}`);
   }
 
-  function stepIndex(slug: string) {
-    return STEPS.findIndex((s) => s.slug === slug);
-  }
-
-  const activeIdx = STEPS.findIndex((s) => isActive(s.slug));
+  const activeIdx = BOOKING_STEPS.findIndex((s) => isActive(s.slug));
 
   return (
     <nav aria-label="Booking progress" className="mb-8">
       <ol className="flex flex-wrap items-center gap-x-1 gap-y-2 text-sm">
-        {STEPS.map((step, i) => {
-          const href = step.slug ? `${base}/${step.slug}` : base;
+        {BOOKING_STEPS.map((step, i) => {
+          const href = `${base}/${step.slug}`;
           const active = isActive(step.slug);
-          const done = activeIdx > stepIndex(step.slug);
+          const reachable = draft ? isStepReachable(draft, i) : i === 0;
+          const done = activeIdx > i || (i < furthest && !active);
+
           return (
-            <li key={step.slug || "vehicle"} className="flex items-center gap-1">
+            <li key={step.slug} className="flex items-center gap-1">
               {i > 0 && (
                 <span className="mx-1 text-border" aria-hidden>
                   →
                 </span>
               )}
-              <Link
-                href={href}
-                className={
-                  active
-                    ? "font-bold text-brand"
-                    : done
-                      ? "font-medium text-foreground hover:text-brand"
-                      : "font-medium text-muted hover:text-brand"
-                }
-                aria-current={active ? "step" : undefined}
-              >
-                {step.label}
-              </Link>
+              {reachable ? (
+                <Link
+                  href={href}
+                  className={
+                    active
+                      ? "font-bold text-brand"
+                      : done
+                        ? "font-medium text-foreground hover:text-brand"
+                        : "font-medium text-muted hover:text-brand"
+                  }
+                  aria-current={active ? "step" : undefined}
+                >
+                  {step.label}
+                </Link>
+              ) : (
+                <span
+                  className="cursor-not-allowed font-medium text-muted/50"
+                  aria-disabled="true"
+                  title="Complete the previous step first"
+                >
+                  {step.label}
+                </span>
+              )}
             </li>
           );
         })}

@@ -6,6 +6,8 @@ import Link from "next/link";
 import BookingSteps from "@/components/BookingSteps";
 import BookingSummary from "@/components/BookingSummary";
 import { useBookingDraft, writeDraft } from "@/lib/use-booking-draft";
+import { completeBookingStep } from "@/lib/booking-progress";
+import { useBookingStepGuard } from "@/lib/use-booking-step-guard";
 import type { BookingDraft } from "@/lib/booking-draft";
 
 const MAX_BYTES = 4 * 1024 * 1024; // 4MB before compression
@@ -44,6 +46,7 @@ async function fileToCompressedDataUrl(file: File): Promise<{
 export default function LicencePage() {
   const { vanId } = useParams<{ vanId: string }>();
   const draft = useBookingDraft(vanId);
+  useBookingStepGuard(vanId, "licence");
 
   if (!draft) {
     return (
@@ -112,15 +115,20 @@ function LicenceForm({ draft }: { draft: BookingDraft }) {
       setError("Please upload both the front and back of your driving licence.");
       return;
     }
-    writeDraft({
-      ...draft,
-      licence: {
-        frontDataUrl: front,
-        frontName: frontName || "licence-front.jpg",
-        backDataUrl: back,
-        backName: backName || "licence-back.jpg",
-      },
-    });
+    writeDraft(
+      completeBookingStep(
+        {
+          ...draft,
+          licence: {
+            frontDataUrl: front,
+            frontName: frontName || "licence-front.jpg",
+            backDataUrl: back,
+            backName: backName || "licence-back.jpg",
+          },
+        },
+        3,
+      ),
+    );
     router.push(`/book/${draft.vanId}/review`);
   }
 

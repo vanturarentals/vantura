@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState, type ReactNode } from "react";
-import Link from "next/link";
+import { Fragment, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useRouter } from "next/navigation";
 import { useSearchParams } from "next/navigation";
 import { formatMoney } from "@/lib/pricing";
 import {
@@ -26,6 +26,7 @@ const SIZE_OPTIONS: VanSize[] = ["Small", "Medium", "Large", "XL & Luton"];
 
 export default function VanResults() {
   const params = useSearchParams();
+  const router = useRouter();
   const pickupAt = params.get("pickupAt") ?? "";
   const dropoffAt = params.get("dropoffAt") ?? "";
 
@@ -35,6 +36,8 @@ export default function VanResults() {
   const [sizes, setSizes] = useState<Set<VanSize>>(new Set());
   const [editing, setEditing] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [expandedVanId, setExpandedVanId] = useState<string | null>(null);
+  const expandedRef = useRef<HTMLLIElement>(null);
 
   useEffect(() => {
     if (missingParams) return;
@@ -88,6 +91,8 @@ export default function VanResults() {
       dropoffLocation: "",
       differentReturn: false,
       extras: [],
+      protectionId: "basic",
+      furthestStepIndex: 0,
       driver: {
         title: "Mr",
         firstName: "",
@@ -100,6 +105,23 @@ export default function VanResults() {
     };
     writeDraft(draft);
   }
+
+  function toggleVan(van: AvailableVan) {
+    setExpandedVanId((current) => (current === van.id ? null : van.id));
+    selectVan(van);
+  }
+
+  function chooseExtras(van: AvailableVan) {
+    selectVan(van);
+    const query = new URLSearchParams({ pickupAt, dropoffAt });
+    router.push(`/book/${van.id}/extras?${query.toString()}`);
+  }
+
+  useEffect(() => {
+    if (expandedVanId && expandedRef.current) {
+      expandedRef.current.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+  }, [expandedVanId]);
 
   if (missingParams) {
     return (
@@ -188,15 +210,25 @@ export default function VanResults() {
 
       <ul className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
         {filtered.map((van, index) => (
-          <li key={van.id}>
-            <VanPreviewCard
-              van={van}
-              pickupAt={pickupAt}
-              dropoffAt={dropoffAt}
-              topSeller={index === 0}
-              onSelect={() => selectVan(van)}
-            />
-          </li>
+          <Fragment key={van.id}>
+            <li>
+              <VanPreviewCard
+                van={van}
+                topSeller={index === 0}
+                expanded={expandedVanId === van.id}
+                onToggle={() => toggleVan(van)}
+              />
+            </li>
+            {expandedVanId === van.id && (
+              <li ref={expandedRef} className="col-span-1 md:col-span-2 xl:col-span-3">
+                <VanExpandedPanel
+                  van={van}
+                  onClose={() => setExpandedVanId(null)}
+                  onChooseExtras={() => chooseExtras(van)}
+                />
+              </li>
+            )}
+          </Fragment>
         ))}
       </ul>
     </div>
@@ -205,29 +237,27 @@ export default function VanResults() {
 
 function VanPreviewCard({
   van,
-  pickupAt,
-  dropoffAt,
   topSeller,
-  onSelect,
+  expanded,
+  onToggle,
 }: {
   van: AvailableVan;
-  pickupAt: string;
-  dropoffAt: string;
   topSeller: boolean;
-  onSelect: () => void;
+  expanded: boolean;
+  onToggle: () => void;
 }) {
   const category = inferCategoryLabel(van.name);
   const seats = inferSeats(van.name);
   const size = inferVanSize(van.name);
 
   return (
-    <Link
-      href={`/book/${van.id}?${new URLSearchParams({
-        pickupAt,
-        dropoffAt,
-      }).toString()}`}
-      onClick={onSelect}
-      className="group relative flex min-h-[22rem] flex-col overflow-hidden rounded-2xl bg-zinc-900 shadow-md transition-transform duration-200 hover:scale-[1.01] hover:shadow-lg sm:min-h-[24rem]"
+    <button
+      type="button"
+      onClick={onToggle}
+      aria-expanded={expanded}
+      className={`group relative flex min-h-[22rem] w-full cursor-pointer flex-col overflow-hidden rounded-2xl bg-zinc-900 text-left shadow-md transition-transform duration-200 hover:scale-[1.01] hover:shadow-lg sm:min-h-[24rem] ${
+        expanded ? "ring-2 ring-brand ring-offset-2" : ""
+      }`}
     >
       {van.imageUrl ? (
         // eslint-disable-next-line @next/next/no-img-element
@@ -281,7 +311,159 @@ function VanPreviewCard({
           )}
         </div>
       </div>
-    </Link>
+    </button>
+  );
+}
+
+function VanExpandedPanel({
+  van,
+  onClose,
+  onChooseExtras,
+}: {
+  van: AvailableVan;
+  onClose: () => void;
+  onChooseExtras: () => void;
+}) {
+  const category = inferCategoryLabel(van.name);
+  const seats = inferSeats(van.name);
+  const size = inferVanSize(van.name);
+
+  return (
+    <div className="overflow-hidden rounded-2xl bg-white shadow-lg ring-1 ring-black/5">
+      <div className="grid grid-cols-1 lg:grid-cols-[1.15fr_1fr]">
+        <div className="relative flex min-h-[18rem] flex-col bg-zinc-900 text-white sm:min-h-[22rem] lg:min-h-[20rem]">
+          {van.imageUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={van.imageUrl}
+              alt=""
+              className="absolute inset-0 h-full w-full object-contain object-center p-4 sm:p-8"
+            />
+          ) : (
+            <div className="absolute inset-0 bg-gradient-to-br from-zinc-800 to-zinc-950" />
+          )}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/30 to-black/10" />
+
+          <div className="relative mt-auto p-5 sm:p-6">
+            <h2 className="text-xl font-extrabold uppercase tracking-tight sm:text-2xl">
+              {van.name}
+            </h2>
+            <p className="mt-0.5 text-sm font-medium text-white/90">or similar</p>
+            <p className="mt-1 text-sm text-white/80">
+              {category} · Manual
+            </p>
+
+            <div className="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-sm text-white/95">
+              <span className="inline-flex items-center gap-2">
+                <PersonIcon />
+                {seats} seats
+              </span>
+              <span className="inline-flex items-center gap-2">
+                <VanIcon />
+                {size}
+              </span>
+              <span className="inline-flex items-center gap-2">
+                <ManualIcon />
+                Manual
+              </span>
+            </div>
+            <p className="mt-3 flex items-center gap-2 text-sm text-white/75">
+              <LicenceIcon />
+              Minimum driver age: 21
+            </p>
+          </div>
+        </div>
+
+        <div className="flex flex-col p-5 sm:p-6">
+          <div className="flex items-start justify-between gap-4">
+            <h3 className="text-lg font-bold text-foreground">Your hire</h3>
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Close"
+              className="cursor-pointer rounded-full p-1 text-muted transition-colors hover:bg-surface hover:text-foreground"
+            >
+              <CloseIcon />
+            </button>
+          </div>
+
+          <div className="mt-5 flex-1 space-y-4">
+            <HireOption
+              selected
+              title="Standard rate"
+              description="Free cancellation and rebooking within 24 hours."
+              badge="Included"
+            />
+            <HireOption
+              title="Mileage"
+              description="All miles included in the price."
+              badge="Included"
+            />
+          </div>
+
+          <div className="mt-6 flex flex-col gap-4 border-t border-border pt-5 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p className="text-2xl font-bold text-foreground">
+                {formatMoney(van.dailyRateMinor, van.currency)}
+                <span className="text-base font-semibold"> /day</span>
+              </p>
+              <p className="text-sm text-muted">
+                {formatMoney(van.totalMinor, van.currency)} total
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={onChooseExtras}
+              className="btn-primary shrink-0 px-8 py-3"
+            >
+              Choose extras
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function HireOption({
+  title,
+  description,
+  badge,
+  selected = false,
+}: {
+  title: string;
+  description: string;
+  badge: string;
+  selected?: boolean;
+}) {
+  return (
+    <div
+      className={`rounded-xl border p-4 ${
+        selected ? "border-brand bg-brand/5" : "border-border bg-surface/50"
+      }`}
+    >
+      <div className="flex items-start gap-3">
+        <span
+          className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 ${
+            selected ? "border-brand bg-brand" : "border-border bg-white"
+          }`}
+          aria-hidden
+        >
+          {selected && (
+            <span className="h-2 w-2 rounded-full bg-white" />
+          )}
+        </span>
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <p className="font-semibold text-foreground">{title}</p>
+            <span className="rounded-full bg-brand/10 px-2 py-0.5 text-xs font-semibold text-brand">
+              {badge}
+            </span>
+          </div>
+          <p className="mt-1 text-sm text-muted">{description}</p>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -388,6 +570,24 @@ function ManualIcon() {
   return (
     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
       <path d="M8 6h8M8 12h8M8 18h5" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function CloseIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+      <path d="M6 6l12 12M18 6L6 18" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function LicenceIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+      <rect x="4" y="3" width="16" height="18" rx="2" />
+      <circle cx="12" cy="10" r="2.5" />
+      <path d="M8 17c.5-2 2.5-3 4-3s3.5 1 4 3" strokeLinecap="round" />
     </svg>
   );
 }
