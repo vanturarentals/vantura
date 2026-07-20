@@ -14,6 +14,7 @@ import { writeDraft } from "@/lib/use-booking-draft";
 import type { BookingDraft } from "@/lib/booking-draft";
 import type { Van } from "@/lib/types";
 import SearchForm from "@/components/SearchForm";
+import { formatShortDateTime } from "@/lib/format-datetime";
 
 interface AvailableVan extends Van {
   days: number;
@@ -120,7 +121,7 @@ export default function VanResults() {
             Which van do you want to drive?
           </h1>
           <p className="mt-1 text-sm text-muted">
-            {formatShort(pickupAt)} → {formatShort(dropoffAt)}
+            {formatShortDateTime(pickupAt)} → {formatShortDateTime(dropoffAt)}
             <button
               type="button"
               onClick={() => setEditing((v) => !v)}
@@ -327,17 +328,6 @@ function FilterPill({
       {icon === "filters" && <ChevronDown />}
     </button>
   );
-}
-
-function formatShort(iso: string): string {
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return iso;
-  return d.toLocaleString("en-GB", {
-    day: "numeric",
-    month: "short",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
 }
 
 function CheckIcon() {

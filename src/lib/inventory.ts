@@ -13,8 +13,9 @@ function toStringArray(value: unknown): string[] {
 
 function firstAttachmentUrl(value: unknown): string | null {
   if (Array.isArray(value) && value.length > 0) {
-    const first = value[0] as { url?: string };
-    return first?.url ?? null;
+    // Airtable appends uploads — use the newest attachment, not the seeded placeholder.
+    const last = value[value.length - 1] as { url?: string };
+    return last?.url ?? null;
   }
   return null;
 }

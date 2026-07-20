@@ -62,7 +62,7 @@ export default function Home() {
           <div className="absolute inset-x-0 bottom-0 mx-auto max-w-6xl px-5 pb-32 pt-20 sm:pb-36">
             <div className="max-w-2xl animate-fade-rise">
               <h1 className="text-4xl font-extrabold leading-[1.05] tracking-tight text-white sm:text-5xl md:text-6xl">
-                Hire the right van, without the hassle.
+                Driven to deliver.
               </h1>
               <p className="mt-4 max-w-xl text-lg font-medium text-white/90 sm:text-xl">
                 Flexible van hire across the UK for moving, work and weekends.

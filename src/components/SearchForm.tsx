@@ -6,6 +6,7 @@ import SearchDateRangeCalendar, {
   parseIso,
   startOfMonth,
 } from "@/components/SearchDateRangeCalendar";
+import { formatShortDate } from "@/lib/format-datetime";
 
 /** 30-minute time slots, 24/7 (00:00 … 23:30). */
 export const TIME_OPTIONS: string[] = (() => {
@@ -251,10 +252,7 @@ export default function SearchForm({ defaults, variant = "hero" }: Props) {
 }
 
 function formatDisplayDate(isoDate: string): string {
-  if (!isoDate) return "Select date";
-  const d = new Date(`${isoDate}T12:00:00`);
-  if (Number.isNaN(d.getTime())) return isoDate;
-  return d.toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+  return formatShortDate(isoDate);
 }
 
 function DateTimeField({

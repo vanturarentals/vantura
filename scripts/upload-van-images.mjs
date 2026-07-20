@@ -49,6 +49,23 @@ async function listVans(token, baseId) {
   return records;
 }
 
+async function clearImages(token, baseId, recordId) {
+  const res = await fetch(
+    `https://api.airtable.com/v0/${baseId}/Vans/${recordId}`,
+    {
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ fields: { Image: [] } }),
+    },
+  );
+  if (!res.ok) {
+    throw new Error(`Clear failed (${res.status}): ${await res.text()}`);
+  }
+}
+
 async function uploadImage(token, baseId, recordId, filePath, filename) {
   const base64 = fs.readFileSync(filePath).toString("base64");
   const url = `https://content.airtable.com/v0/${baseId}/${recordId}/Image/uploadAttachment`;
@@ -89,6 +106,7 @@ async function main() {
     if (!fs.existsSync(filePath)) {
       throw new Error(`Missing file: ${filePath}`);
     }
+    await clearImages(token, baseId, rec.id);
     await uploadImage(token, baseId, rec.id, filePath, file);
     console.log(`Updated ${name}`);
   }
