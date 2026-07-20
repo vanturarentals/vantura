@@ -170,8 +170,15 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error("[checkout] error:", error);
+    const detail =
+      error instanceof Error ? error.message : "Could not start checkout.";
     return NextResponse.json(
-      { error: "Could not start checkout." },
+      {
+        error:
+          process.env.NODE_ENV === "development"
+            ? `Could not start checkout: ${detail}`
+            : "Could not start checkout.",
+      },
       { status: 500 },
     );
   }

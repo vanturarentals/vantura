@@ -226,9 +226,37 @@ export async function createPendingBooking(
     fields[FIELDS.booking.userId] = input.userId;
   }
 
-  const record = await createRecord(airtableConfig.bookingsTable, fields);
+  // Newer optional columns (Deposit Amount, etc.) may not exist yet — strip and retry.
+  const record = await createRecordOmittingUnknownFields(
+    airtableConfig.bookingsTable,
+    fields,
+  );
 
   return mapBooking(record);
+}
+
+/** Create a record; on UNKNOWN_FIELD_NAME strip that field and retry. */
+async function createRecordOmittingUnknownFields(
+  table: string,
+  fields: Record<string, unknown>,
+): Promise<AirtableRecord> {
+  const remaining = { ...fields };
+  for (let attempt = 0; attempt < 6; attempt++) {
+    try {
+      return await createRecord(table, remaining);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      const match = message.match(/Unknown field name: "([^"]+)"/i);
+      if (!match) throw error;
+      const unknown = match[1];
+      if (!(unknown in remaining)) throw error;
+      console.warn(
+        `[bookings] Airtable field "${unknown}" missing on ${table}; continuing without it.`,
+      );
+      delete remaining[unknown];
+    }
+  }
+  return createRecord(table, remaining);
 }
 
 export async function attachStripeSession(

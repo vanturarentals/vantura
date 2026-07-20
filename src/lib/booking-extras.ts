@@ -86,24 +86,34 @@ export async function syncExtrasCatalog(): Promise<number> {
   return synced;
 }
 
-/** Create Booking Extras rows linked to a booking. */
+/** Create Booking Extras rows linked to a booking. Soft-fails if tables aren't set up yet. */
 export async function attachBookingExtras(input: {
   bookingId: string;
   extras: { id: string; quantity: number }[];
   startAt: string;
   endAt: string;
 }): Promise<void> {
-  const days = rentalDays(input.startAt, input.endAt);
-  for (const line of input.extras) {
-    if (line.quantity <= 0) continue;
-    const extraRecordId = await ensureExtraCatalogRecord(line.id);
-    if (!extraRecordId) continue;
-    const lineTotalMinor = extraLineTotalMinor(line.id, line.quantity, days);
-    await createRecord(airtableConfig.bookingExtrasTable, {
-      [FIELDS.bookingExtra.booking]: [input.bookingId],
-      [FIELDS.bookingExtra.extra]: [extraRecordId],
-      [FIELDS.bookingExtra.quantity]: line.quantity,
-      [FIELDS.bookingExtra.lineTotal]: lineTotalMinor / 100,
-    });
+  const selected = input.extras.filter((line) => line.quantity > 0);
+  if (selected.length === 0) return;
+
+  try {
+    const days = rentalDays(input.startAt, input.endAt);
+    for (const line of selected) {
+      const extraRecordId = await ensureExtraCatalogRecord(line.id);
+      if (!extraRecordId) continue;
+      const lineTotalMinor = extraLineTotalMinor(line.id, line.quantity, days);
+      await createRecord(airtableConfig.bookingExtrasTable, {
+        [FIELDS.bookingExtra.booking]: [input.bookingId],
+        [FIELDS.bookingExtra.extra]: [extraRecordId],
+        [FIELDS.bookingExtra.quantity]: line.quantity,
+        [FIELDS.bookingExtra.lineTotal]: lineTotalMinor / 100,
+      });
+    }
+  } catch (error) {
+    // Don't block Stripe checkout if Extras / Booking Extras tables aren't created yet.
+    console.warn(
+      "[booking-extras] Could not sync extras to Airtable (tables may be missing):",
+      error instanceof Error ? error.message : error,
+    );
   }
 }
