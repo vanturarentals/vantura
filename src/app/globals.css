@@ -319,6 +319,14 @@ input[type="date"].field {
   color: #9ca3af;
 }
 
+.field.field-error {
+  border-color: #dc2626;
+}
+
+.field.field-error:focus {
+  border-color: #dc2626;
+}
+
 .panel {
   border-radius: var(--radius);
   border: 1px solid var(--border);

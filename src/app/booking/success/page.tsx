@@ -96,15 +96,31 @@ export default async function SuccessPage({
                   <Row label="Pick-up" value={formatDate(booking.startAt)} />
                   <Row label="Return" value={formatDate(booking.endAt)} />
                   <Row
-                    label="Total paid"
+                    label="Deposit paid"
+                    value={formatMoney(
+                      booking.depositAmountMinor,
+                      booking.currency,
+                    )}
+                  />
+                  <Row
+                    label="Hire total"
                     value={formatMoney(booking.totalAmountMinor, booking.currency)}
                   />
+                  {booking.totalAmountMinor > booking.depositAmountMinor && (
+                    <Row
+                      label="Balance due in person"
+                      value={formatMoney(
+                        booking.totalAmountMinor - booking.depositAmountMinor,
+                        booking.currency,
+                      )}
+                    />
+                  )}
                 </dl>
               )}
             </div>
 
             <ul className="mt-8 space-y-2 text-sm text-white/85">
-              <li>Bring your driving licence and the card used for payment.</li>
+              <li>Bring your driving licence and payment for the remaining balance.</li>
               <li>Arrive on time for pick-up — we&apos;re open 24/7.</li>
               <li>Check your email for the confirmation details.</li>
             </ul>

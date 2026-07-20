@@ -25,6 +25,11 @@ function firstLinkedId(value: unknown): string | null {
 function mapBooking(record: AirtableRecord): Booking {
   const f = record.fields;
   const amount = Number(f[FIELDS.booking.totalAmount] ?? 0);
+  const depositRaw = f[FIELDS.booking.depositAmount];
+  const depositMajor =
+    depositRaw != null && depositRaw !== ""
+      ? Number(depositRaw)
+      : amount;
   const numberValue = f[FIELDS.booking.number];
   const referenceRaw = f[FIELDS.booking.reference];
   const refundRaw = f[FIELDS.booking.refundStatus];
@@ -45,6 +50,7 @@ function mapBooking(record: AirtableRecord): Booking {
     startAt: String(f[FIELDS.booking.startAt] ?? ""),
     endAt: String(f[FIELDS.booking.endAt] ?? ""),
     totalAmountMinor: Math.round(amount * 100),
+    depositAmountMinor: Math.round(depositMajor * 100),
     currency: String(f[FIELDS.booking.currency] ?? ""),
     paymentStatus: (String(
       f[FIELDS.booking.paymentStatus] ?? "Pending",
@@ -176,8 +182,11 @@ export interface NewPendingBooking {
   startAt: string;
   endAt: string;
   totalAmountMinor: number;
+  depositAmountMinor?: number;
   currency: string;
   userId?: string | null;
+  protectionName?: string;
+  mileageName?: string;
 }
 
 export async function createPendingBooking(
@@ -204,6 +213,15 @@ export async function createPendingBooking(
     [FIELDS.booking.totalAmount]: input.totalAmountMinor / 100,
     [FIELDS.booking.currency]: input.currency,
   };
+  if (input.depositAmountMinor != null) {
+    fields[FIELDS.booking.depositAmount] = input.depositAmountMinor / 100;
+  }
+  if (input.protectionName) {
+    fields[FIELDS.booking.protectionPackage] = input.protectionName;
+  }
+  if (input.mileageName) {
+    fields[FIELDS.booking.mileageOption] = input.mileageName;
+  }
   if (input.userId) {
     fields[FIELDS.booking.userId] = input.userId;
   }

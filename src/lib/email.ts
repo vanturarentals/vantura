@@ -152,6 +152,13 @@ export async function sendBookingConfirmationEmail(
     ? formatBookingReference(booking.reference)
     : booking.id;
   const total = formatMoney(booking.totalAmountMinor, booking.currency);
+  const deposit = formatMoney(booking.depositAmountMinor, booking.currency);
+  const balanceMinor = Math.max(
+    0,
+    booking.totalAmountMinor - booking.depositAmountMinor,
+  );
+  const balance = formatMoney(balanceMinor, booking.currency);
+  const paidDepositOnly = balanceMinor > 0;
   const appUrl = getAppUrl();
   const first = booking.customerName.trim().split(/\s+/)[0] || "there";
 
@@ -162,17 +169,19 @@ export async function sendBookingConfirmationEmail(
       "Your van is booked",
       `
       <p style="margin:0 0 14px;font-size:15px;line-height:1.55;">
-        Hi ${escapeHtml(first)}, your payment is confirmed and your hire is locked in.
+        Hi ${escapeHtml(first)}, your reservation deposit is confirmed and your hire is locked in.
       </p>
       <table role="presentation" width="100%" style="font-size:14px;border-collapse:collapse;margin:0 0 18px;">
         <tr><td style="padding:8px 0;color:#6b726e;">Reference</td><td style="padding:8px 0;text-align:right;font-weight:600;font-family:ui-monospace,monospace;">${escapeHtml(reference)}</td></tr>
         <tr><td style="padding:8px 0;color:#6b726e;border-top:1px solid #d9ddd9;">Van</td><td style="padding:8px 0;text-align:right;font-weight:600;border-top:1px solid #d9ddd9;">${escapeHtml(vanName)}</td></tr>
         <tr><td style="padding:8px 0;color:#6b726e;border-top:1px solid #d9ddd9;">Pick-up</td><td style="padding:8px 0;text-align:right;border-top:1px solid #d9ddd9;">${escapeHtml(formatWhen(booking.startAt))}<br/><span style="color:#6b726e;">${escapeHtml(booking.pickupLocation || "—")}</span></td></tr>
         <tr><td style="padding:8px 0;color:#6b726e;border-top:1px solid #d9ddd9;">Return</td><td style="padding:8px 0;text-align:right;border-top:1px solid #d9ddd9;">${escapeHtml(formatWhen(booking.endAt))}<br/><span style="color:#6b726e;">${escapeHtml(booking.dropoffLocation || "—")}</span></td></tr>
-        <tr><td style="padding:8px 0;color:#6b726e;border-top:1px solid #d9ddd9;">Total paid</td><td style="padding:8px 0;text-align:right;font-weight:700;border-top:1px solid #d9ddd9;">${escapeHtml(total)}</td></tr>
+        <tr><td style="padding:8px 0;color:#6b726e;border-top:1px solid #d9ddd9;">Hire total</td><td style="padding:8px 0;text-align:right;font-weight:600;border-top:1px solid #d9ddd9;">${escapeHtml(total)}</td></tr>
+        <tr><td style="padding:8px 0;color:#6b726e;border-top:1px solid #d9ddd9;">Deposit paid today</td><td style="padding:8px 0;text-align:right;font-weight:700;border-top:1px solid #d9ddd9;">${escapeHtml(deposit)}</td></tr>
+        ${paidDepositOnly ? `<tr><td style="padding:8px 0;color:#6b726e;border-top:1px solid #d9ddd9;">Balance due in person</td><td style="padding:8px 0;text-align:right;font-weight:600;border-top:1px solid #d9ddd9;">${escapeHtml(balance)}</td></tr>` : ""}
       </table>
       <p style="margin:0 0 18px;font-size:14px;line-height:1.55;color:#6b726e;">
-        Bring your driving licence and the card used for payment to pick-up.
+        Bring your driving licence and payment for the remaining balance to pick-up.
       </p>
       <p style="margin:0 0 18px;">
         <a href="${escapeHtml(appUrl)}/manage"
@@ -202,6 +211,13 @@ export async function sendNewBookingNotifyEmail(
     ? formatBookingReference(booking.reference)
     : booking.id;
   const total = formatMoney(booking.totalAmountMinor, booking.currency);
+  const deposit = formatMoney(booking.depositAmountMinor, booking.currency);
+  const balanceMinor = Math.max(
+    0,
+    booking.totalAmountMinor - booking.depositAmountMinor,
+  );
+  const balance = formatMoney(balanceMinor, booking.currency);
+  const paidDepositOnly = balanceMinor > 0;
   const appUrl = getAppUrl();
 
   await sendEmail({
@@ -211,7 +227,7 @@ export async function sendNewBookingNotifyEmail(
       "New booking received",
       `
       <p style="margin:0 0 14px;font-size:15px;line-height:1.55;">
-        A customer has paid and confirmed a hire.
+        A customer has paid a reservation deposit and confirmed a hire.
       </p>
       <table role="presentation" width="100%" style="font-size:14px;border-collapse:collapse;margin:0 0 18px;">
         <tr><td style="padding:8px 0;color:#6b726e;">Reference</td><td style="padding:8px 0;text-align:right;font-weight:600;font-family:ui-monospace,monospace;">${escapeHtml(reference)}</td></tr>
@@ -219,7 +235,9 @@ export async function sendNewBookingNotifyEmail(
         <tr><td style="padding:8px 0;color:#6b726e;border-top:1px solid #d9ddd9;">Van</td><td style="padding:8px 0;text-align:right;font-weight:600;border-top:1px solid #d9ddd9;">${escapeHtml(vanName)}</td></tr>
         <tr><td style="padding:8px 0;color:#6b726e;border-top:1px solid #d9ddd9;">Pick-up</td><td style="padding:8px 0;text-align:right;border-top:1px solid #d9ddd9;">${escapeHtml(formatWhen(booking.startAt))}<br/><span style="color:#6b726e;">${escapeHtml(booking.pickupLocation || "—")}</span></td></tr>
         <tr><td style="padding:8px 0;color:#6b726e;border-top:1px solid #d9ddd9;">Return</td><td style="padding:8px 0;text-align:right;border-top:1px solid #d9ddd9;">${escapeHtml(formatWhen(booking.endAt))}<br/><span style="color:#6b726e;">${escapeHtml(booking.dropoffLocation || "—")}</span></td></tr>
-        <tr><td style="padding:8px 0;color:#6b726e;border-top:1px solid #d9ddd9;">Total paid</td><td style="padding:8px 0;text-align:right;font-weight:700;border-top:1px solid #d9ddd9;">${escapeHtml(total)}</td></tr>
+        <tr><td style="padding:8px 0;color:#6b726e;border-top:1px solid #d9ddd9;">Hire total</td><td style="padding:8px 0;text-align:right;font-weight:600;border-top:1px solid #d9ddd9;">${escapeHtml(total)}</td></tr>
+        <tr><td style="padding:8px 0;color:#6b726e;border-top:1px solid #d9ddd9;">Deposit paid today</td><td style="padding:8px 0;text-align:right;font-weight:700;border-top:1px solid #d9ddd9;">${escapeHtml(deposit)}</td></tr>
+        ${paidDepositOnly ? `<tr><td style="padding:8px 0;color:#6b726e;border-top:1px solid #d9ddd9;">Balance due in person</td><td style="padding:8px 0;text-align:right;font-weight:600;border-top:1px solid #d9ddd9;">${escapeHtml(balance)}</td></tr>` : ""}
       </table>
       <p style="margin:0;">
         <a href="${escapeHtml(appUrl)}/manage"

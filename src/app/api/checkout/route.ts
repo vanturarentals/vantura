@@ -3,6 +3,8 @@ import { stripeConfig } from "@/lib/config";
 import { getStripe } from "@/lib/stripe";
 import { getVanById, isVanAvailable } from "@/lib/inventory";
 import { attachLicencePhotos, attachStripeSession, createPendingBooking } from "@/lib/bookings";
+import { attachBookingExtras } from "@/lib/booking-extras";
+import { DEPOSIT_MINOR } from "@/lib/booking-totals";
 import { computeTotalMinor, isValidRange, rentalDays } from "@/lib/pricing";
 import { extrasTotalMinor, getExtra } from "@/lib/extras";
 import { getProtection, protectionTotalMinor } from "@/lib/protections";
@@ -106,8 +108,18 @@ export async function POST(request: NextRequest) {
       startAt: startIso,
       endAt: endIso,
       totalAmountMinor: totalMinor,
+      depositAmountMinor: DEPOSIT_MINOR,
       currency,
+      protectionName: protection.name,
+      mileageName: mileage.name,
       userId: user?.id ?? null,
+    });
+
+    await attachBookingExtras({
+      bookingId: booking.id,
+      extras,
+      startAt: startIso,
+      endAt: endIso,
     });
 
     await attachLicencePhotos(booking.id, {
@@ -133,11 +145,15 @@ export async function POST(request: NextRequest) {
 
     const stripe = getStripe();
     const paymentIntent = await stripe.paymentIntents.create({
-      amount: totalMinor,
+      amount: DEPOSIT_MINOR,
       currency,
       receipt_email: email,
-      description: descriptionParts.join(" · "),
-      metadata: { bookingId: booking.id },
+      description: `Reservation deposit · ${descriptionParts.join(" · ")}`,
+      metadata: {
+        bookingId: booking.id,
+        hireTotalMinor: String(totalMinor),
+        depositMinor: String(DEPOSIT_MINOR),
+      },
       payment_method_types: ["card"],
     });
 

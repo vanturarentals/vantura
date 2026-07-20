@@ -38,6 +38,7 @@ export async function POST(request: NextRequest) {
         endAt: booking.endAt,
         paymentStatus: booking.paymentStatus,
         totalAmountMinor: booking.totalAmountMinor,
+        depositAmountMinor: booking.depositAmountMinor,
         currency: booking.currency,
         customerName: booking.customerName,
         pickupLocation: booking.pickupLocation,

@@ -87,16 +87,41 @@ your columns differ. This matches base `appVRvdqJG6fSUrmp`. Fields marked
 | `Payment Status` | Single select | `Pending` → `Paid` → `Cancelled` |
 | `Pickup Location` | Single line text | **(added)** |
 | `Dropoff Location` | Single line text | **(added)** |
-| `Total Amount` | Currency (£) | **(added)** major units |
+| `Total Amount` | Currency (£) | **(added)** full hire total (major units) |
+| `Deposit Amount` | Currency (£) | **(added)** £50 reservation deposit |
+| `Protection Package` | Single line text | **(added)** e.g. Basic, Smart |
+| `Mileage Option` | Single line text | **(added)** e.g. 200 miles, Unlimited miles |
 | `Currency` | Single line text | **(added)** |
 | `Stripe Session ID` | Single line text | **(added)** used for the success-page lookup |
+
+### Extras catalogue (`Extras` table)
+
+| Field | Type | Notes |
+|-------|------|-------|
+| `Slug` | Single line text | Site id — `phone_charger`, `second_driver`, `pallet_truck` |
+| `Name` | Single line text | Display name |
+| `Price` | Currency (£) | Per day or flat (see Charge Type) |
+| `Charge Type` | Single select | `Flat` or `Per day` |
+
+Run `node scripts/seed-extras.mjs` to upsert the three site extras.
+
+### Booking extras (`Booking Extras` table)
+
+| Field | Type | Notes |
+|-------|------|-------|
+| `Booking` | Link → Bookings | One row per extra line on a booking |
+| `Extra` | Link → Extras | Catalogue item |
+| `Quantity` | Number | |
+| `Line Total` | Currency (£) | Computed at checkout |
+
+Rows are created automatically when a customer checks out with extras selected.
 
 Unpaid `Pending` bookings act as 30-minute holds (expiry is derived from the
 Airtable record `createdTime`), then are released by the
 `checkout.session.expired` webhook.
 
-> The base also has an **Extras** table (add-ons). It isn't wired into the
-> booking flow yet — see "next steps" below.
+Checkout charges a **£50 deposit** online; the full hire total is stored on
+the booking and the balance is collected in person at pick-up.
 
 ## Project structure
 

@@ -34,6 +34,12 @@ export const airtableConfig = {
   get bookingsTable() {
     return optional("AIRTABLE_BOOKINGS_TABLE", "Bookings");
   },
+  get extrasTable() {
+    return optional("AIRTABLE_EXTRAS_TABLE", "Extras");
+  },
+  get bookingExtrasTable() {
+    return optional("AIRTABLE_BOOKING_EXTRAS_TABLE", "Booking Extras");
+  },
 };
 
 export const stripeConfig = {

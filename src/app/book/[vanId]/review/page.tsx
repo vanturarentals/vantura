@@ -132,7 +132,7 @@ export default function ReviewPage() {
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1fr_300px]">
         <div className="space-y-4">
           <h1 className="text-2xl font-bold text-brand">
-            {showPayment ? "Payment" : "Review & pay"}
+            {showPayment ? "Pay deposit" : "Review & reserve"}
           </h1>
 
           {!showPayment && (
@@ -218,7 +218,7 @@ export default function ReviewPage() {
                   onClick={startPayment}
                   className="btn-primary py-3"
                 >
-                  Continue to payment
+                  Continue to reserve
                 </button>
               </div>
             </>
@@ -228,8 +228,9 @@ export default function ReviewPage() {
             <div className="space-y-4">
               <SignInPrompt signedIn={signedIn} />
               <p className="text-sm text-muted">
-                Enter your card details below. Payment is processed securely by
-                Stripe — card data never touches Vantura servers.
+                Pay a £50 deposit now to reserve your van. The remaining balance
+                is due in person at pick-up. Card details are processed securely
+                by Stripe.
               </p>
               <EmbeddedPayment fetchClientSecret={fetchClientSecret} />
               <button

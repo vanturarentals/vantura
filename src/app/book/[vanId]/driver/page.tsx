@@ -54,6 +54,7 @@ export default function DriverPage() {
 function DriverForm({ draft }: { draft: BookingDraft }) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<Set<string>>(new Set());
   // Local state avoids focus loss when sessionStorage draft updates.
   const [driver, setDriver] = useState(draft.driver);
   const [phoneConfirm, setPhoneConfirm] = useState(draft.driver.phone);
@@ -89,7 +90,24 @@ function DriverForm({ draft }: { draft: BookingDraft }) {
   const field = "field";
   const fieldLocked = "field cursor-not-allowed bg-surface text-muted";
 
+  function inputClass(name: string, locked = false) {
+    const base = locked ? fieldLocked : field;
+    return fieldErrors.has(name) ? `${base} field-error` : base;
+  }
+
+  function clearFieldError(name: string) {
+    setFieldErrors((prev) => {
+      if (!prev.has(name)) return prev;
+      const next = new Set(prev);
+      next.delete(name);
+      return next;
+    });
+  }
+
   function updateDriver(patch: Partial<BookingDraft["driver"]>) {
+    for (const key of Object.keys(patch)) {
+      clearFieldError(key);
+    }
     setDriver((prev) => {
       const next = { ...prev, ...patch };
       writeDraft({ ...draft, driver: next });
@@ -99,35 +117,52 @@ function DriverForm({ draft }: { draft: BookingDraft }) {
 
   function onPhoneChange(value: string) {
     updateDriver({ phone: digitsOnly(value) });
+    clearFieldError("phone");
   }
 
   function onPhoneConfirmChange(value: string) {
     setPhoneConfirm(digitsOnly(value));
+    clearFieldError("phoneConfirm");
   }
 
   function onContinue() {
     setError(null);
     const { firstName, lastName, email, phone, dateOfBirth } = driver;
-    if (!firstName || !lastName || !email || !phone || !dateOfBirth) {
+    const invalid = new Set<string>();
+
+    if (!firstName) invalid.add("firstName");
+    if (!lastName) invalid.add("lastName");
+    if (!email) invalid.add("email");
+    if (!phone) invalid.add("phone");
+    if (!phoneConfirm) invalid.add("phoneConfirm");
+    if (!dateOfBirth) invalid.add("dateOfBirth");
+
+    if (invalid.size > 0) {
+      setFieldErrors(invalid);
       setError("Please complete all required fields.");
       return;
     }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setFieldErrors(new Set(["email"]));
       setError("Enter a valid email address.");
       return;
     }
     if (!/^\d{10,15}$/.test(phone)) {
+      setFieldErrors(new Set(["phone"]));
       setError("Enter a valid phone number (digits only, 10–15 numbers).");
       return;
     }
     if (phone !== phoneConfirm) {
+      setFieldErrors(new Set(["phone", "phoneConfirm"]));
       setError("Phone numbers do not match.");
       return;
     }
     if (dateOfBirth > maxDob()) {
+      setFieldErrors(new Set(["dateOfBirth"]));
       setError("Drivers must be 21 or over.");
       return;
     }
+    setFieldErrors(new Set());
     writeDraft(completeBookingStep({ ...draft, driver }, 2));
     router.push(`/book/${draft.vanId}/licence`);
   }
@@ -167,7 +202,7 @@ function DriverForm({ draft }: { draft: BookingDraft }) {
             <input
               value={driver.firstName}
               onChange={(e) => updateDriver({ firstName: e.target.value })}
-              className={field}
+              className={inputClass("firstName")}
               autoComplete="given-name"
               name="firstName"
               required
@@ -178,7 +213,7 @@ function DriverForm({ draft }: { draft: BookingDraft }) {
             <input
               value={driver.lastName}
               onChange={(e) => updateDriver({ lastName: e.target.value })}
-              className={field}
+              className={inputClass("lastName")}
               autoComplete="family-name"
               name="lastName"
               required
@@ -196,7 +231,7 @@ function DriverForm({ draft }: { draft: BookingDraft }) {
                 if (emailLocked) return;
                 updateDriver({ email: e.target.value });
               }}
-              className={emailLocked ? fieldLocked : field}
+              className={emailLocked ? fieldLocked : inputClass("email")}
               autoComplete="email"
               name="email"
               inputMode="email"
@@ -210,7 +245,7 @@ function DriverForm({ draft }: { draft: BookingDraft }) {
               type="tel"
               value={driver.phone}
               onChange={(e) => onPhoneChange(e.target.value)}
-              className={field}
+              className={inputClass("phone")}
               autoComplete="tel-national"
               name="phone"
               inputMode="numeric"
@@ -226,7 +261,7 @@ function DriverForm({ draft }: { draft: BookingDraft }) {
             type="tel"
             value={phoneConfirm}
             onChange={(e) => onPhoneConfirmChange(e.target.value)}
-            className={field}
+            className={inputClass("phoneConfirm")}
             autoComplete="off"
             name="phoneConfirm"
             inputMode="numeric"
@@ -243,7 +278,7 @@ function DriverForm({ draft }: { draft: BookingDraft }) {
               max={maxDob()}
               value={driver.dateOfBirth}
               onChange={(e) => updateDriver({ dateOfBirth: e.target.value })}
-              className={field}
+              className={inputClass("dateOfBirth")}
               autoComplete="bday"
               name="dateOfBirth"
               required

@@ -7,7 +7,7 @@ export const BOOKING_STEPS = [
   { slug: "protection", label: "Protection" },
   { slug: "driver", label: "Driver" },
   { slug: "licence", label: "Licence" },
-  { slug: "review", label: "Payment" },
+  { slug: "review", label: "Reserve" },
 ] as const;
 
 export type BookingStepSlug = (typeof BOOKING_STEPS)[number]["slug"];

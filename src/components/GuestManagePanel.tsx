@@ -14,6 +14,7 @@ interface LookupResult {
   endAt: string;
   paymentStatus: string;
   totalAmountMinor: number;
+  depositAmountMinor: number;
   currency: string;
   customerName: string;
   pickupLocation: string;
@@ -133,9 +134,22 @@ export default function GuestManagePanel() {
               }
             />
             <Row
-              label="Total"
+              label="Hire total"
               value={formatMoney(result.totalAmountMinor, result.currency)}
             />
+            <Row
+              label="Deposit paid"
+              value={formatMoney(result.depositAmountMinor, result.currency)}
+            />
+            {result.totalAmountMinor > result.depositAmountMinor && (
+              <Row
+                label="Balance due in person"
+                value={formatMoney(
+                  result.totalAmountMinor - result.depositAmountMinor,
+                  result.currency,
+                )}
+              />
+            )}
             <Row label="Status" value={result.paymentStatus} />
           </dl>
 

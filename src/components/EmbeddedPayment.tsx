@@ -154,9 +154,9 @@ function CheckoutForm({ clientSecret }: { clientSecret: string }) {
   return (
     <form onSubmit={onSubmit} className="panel space-y-4 p-6">
       <div>
-        <h2 className="text-lg font-bold text-brand">Payment details</h2>
+        <h2 className="text-lg font-bold text-brand">Reserve your van</h2>
         <p className="mt-1 text-sm text-muted">
-          Pay securely with Stripe. Your card details never touch our servers.
+          Pay a £50 deposit today. Your card details never touch our servers.
         </p>
       </div>
 
@@ -195,7 +195,7 @@ function CheckoutForm({ clientSecret }: { clientSecret: string }) {
           <rect x="5" y="11" width="14" height="10" rx="2" />
           <path d="M8 11V7a4 4 0 0 1 8 0v4" />
         </svg>
-        {busy ? "Processing…" : "Pay now"}
+        {busy ? "Processing…" : "Reserve now — pay £50 deposit"}
       </button>
     </form>
   );

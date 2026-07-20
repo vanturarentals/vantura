@@ -353,11 +353,28 @@ function BookingDetail({ row }: { row: ManageBookingRow }) {
           value={booking.dropoffLocation || "—"}
         />
         <div className="flex justify-between gap-3 border-t border-border pt-3">
-          <dt className="font-bold text-foreground">Total paid</dt>
-          <dd className="font-bold text-brand">
+          <dt className="font-bold text-foreground">Hire total</dt>
+          <dd className="font-bold text-foreground">
             {formatMoney(booking.totalAmountMinor, booking.currency)}
           </dd>
         </div>
+        <div className="flex justify-between gap-3">
+          <dt className="text-muted">Deposit paid</dt>
+          <dd className="font-medium">
+            {formatMoney(booking.depositAmountMinor, booking.currency)}
+          </dd>
+        </div>
+        {booking.totalAmountMinor > booking.depositAmountMinor && (
+          <div className="flex justify-between gap-3">
+            <dt className="text-muted">Balance due in person</dt>
+            <dd className="font-medium">
+              {formatMoney(
+                booking.totalAmountMinor - booking.depositAmountMinor,
+                booking.currency,
+              )}
+            </dd>
+          </div>
+        )}
         {booking.refundStatus && (
           <DetailRow label="Refund" value={booking.refundStatus} />
         )}

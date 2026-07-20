@@ -41,6 +41,8 @@ export interface Booking {
   startAt: string;
   endAt: string;
   totalAmountMinor: number;
+  /** Online deposit charged at checkout (pence). */
+  depositAmountMinor: number;
   currency: string;
   paymentStatus: PaymentStatus;
   stripeSessionId: string | null;

@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { formatMoney, rentalDays } from "@/lib/pricing";
-import { extrasTotalMinor, getExtra } from "@/lib/extras";
-import { getProtection, protectionTotalMinor } from "@/lib/protections";
-import { getMileageOption, mileageTotalMinor } from "@/lib/mileage";
+import { formatMoney } from "@/lib/pricing";
+import { computeBookingTotals } from "@/lib/booking-totals";
+import { getExtra } from "@/lib/extras";
+import { getProtection } from "@/lib/protections";
+import { getMileageOption } from "@/lib/mileage";
 import type { BookingDraft } from "@/lib/booking-draft";
 
 interface Props {
@@ -12,12 +13,7 @@ interface Props {
 }
 
 export default function BookingSummary({ draft }: Props) {
-  const days = rentalDays(draft.pickupAt, draft.dropoffAt);
-  const vanTotal = draft.dailyRateMinor * days;
-  const extrasTotal = extrasTotalMinor(draft.extras, days);
-  const protectionTotal = protectionTotalMinor(draft.protectionId ?? "basic", days);
-  const mileageTotal = mileageTotalMinor(draft.mileageId ?? "included_200", days);
-  const total = vanTotal + extrasTotal + protectionTotal + mileageTotal;
+  const totals = computeBookingTotals(draft);
   const currency = draft.currency || "gbp";
 
   return (
@@ -57,12 +53,12 @@ export default function BookingSummary({ draft }: Props) {
       </div>
 
       <dl className="mt-4 space-y-2 text-sm">
-        <div className="flex justify-between gap-3">
-          <dt className="text-muted">
-            Van · {days} day{days === 1 ? "" : "s"}
-          </dt>
-          <dd className="font-medium">{formatMoney(vanTotal, currency)}</dd>
-        </div>
+        <LineItem
+          label={`Van · ${totals.days} day${totals.days === 1 ? "" : "s"}`}
+          amount={totals.vanTotalMinor}
+          currency={currency}
+          payInPerson
+        />
         {draft.extras
           .filter((e) => e.quantity > 0)
           .map((e) => {
@@ -70,47 +66,76 @@ export default function BookingSummary({ draft }: Props) {
             if (!item) return null;
             const line =
               item.chargeType === "per_day"
-                ? item.priceMinor * days * e.quantity
+                ? item.priceMinor * totals.days * e.quantity
                 : item.priceMinor * e.quantity;
             return (
-              <div key={e.id} className="flex justify-between gap-3">
-                <dt className="text-muted">
-                  {item.name}
-                  {e.quantity > 1 ? ` ×${e.quantity}` : ""}
-                </dt>
-                <dd className="font-medium">{formatMoney(line, currency)}</dd>
-              </div>
+              <LineItem
+                key={e.id}
+                label={`${item.name}${e.quantity > 1 ? ` ×${e.quantity}` : ""}`}
+                amount={line}
+                currency={currency}
+                payInPerson
+              />
             );
           })}
         {(() => {
           const mileage = getMileageOption(draft.mileageId ?? "included_200");
-          if (!mileage || mileageTotal === 0) return null;
+          if (!mileage || totals.mileageTotalMinor === 0) return null;
           return (
-            <div className="flex justify-between gap-3">
-              <dt className="text-muted">{mileage.name}</dt>
-              <dd className="font-medium">
-                {formatMoney(mileageTotal, currency)}
-              </dd>
-            </div>
+            <LineItem
+              label={mileage.name}
+              amount={totals.mileageTotalMinor}
+              currency={currency}
+              payInPerson
+            />
           );
         })()}
         {(() => {
           const pkg = getProtection(draft.protectionId ?? "basic");
           if (!pkg) return null;
           return (
-            <div className="flex justify-between gap-3">
-              <dt className="text-muted">{pkg.name}</dt>
-              <dd className="font-medium">
-                {formatMoney(protectionTotal, currency)}
-              </dd>
-            </div>
+            <LineItem
+              label={pkg.name}
+              amount={totals.protectionTotalMinor}
+              currency={currency}
+              payInPerson
+            />
           );
         })()}
-        <div className="flex justify-between gap-3 border-t border-border pt-3 text-base">
-          <dt className="font-bold">Total</dt>
-          <dd className="font-bold text-brand">{formatMoney(total, currency)}</dd>
+
+        <div className="border-t border-border pt-3">
+          <div className="flex justify-between gap-3 text-muted">
+            <dt>Hire total</dt>
+            <dd className="text-right">
+              <span className="font-medium text-foreground">
+                {formatMoney(totals.hireTotalMinor, currency)}
+              </span>
+              <span className="mt-0.5 block text-xs">Pay in person</span>
+            </dd>
+          </div>
+        </div>
+
+        <div className="flex justify-between gap-3 rounded-lg bg-brand/5 px-3 py-2.5">
+          <dt className="text-xs font-bold uppercase tracking-wide text-brand">
+            Due today
+          </dt>
+          <dd className="text-base font-bold text-brand">
+            {formatMoney(totals.depositMinor, currency)}
+          </dd>
+        </div>
+
+        <div className="flex justify-between gap-3 text-sm">
+          <dt className="text-muted">Balance due in person</dt>
+          <dd className="font-semibold text-foreground">
+            {formatMoney(totals.balanceDueMinor, currency)}
+          </dd>
         </div>
       </dl>
+
+      <p className="mt-3 text-xs leading-relaxed text-muted">
+        Pay a £50 deposit now to reserve your van. The remaining balance is due
+        at pick-up.
+      </p>
 
       <Link
         href={`/vans?${new URLSearchParams({
@@ -122,6 +147,30 @@ export default function BookingSummary({ draft }: Props) {
         Change search
       </Link>
     </aside>
+  );
+}
+
+function LineItem({
+  label,
+  amount,
+  currency,
+  payInPerson,
+}: {
+  label: string;
+  amount: number;
+  currency: string;
+  payInPerson?: boolean;
+}) {
+  return (
+    <div className="flex justify-between gap-3">
+      <dt className="text-muted">{label}</dt>
+      <dd className="text-right">
+        <span className="font-medium">{formatMoney(amount, currency)}</span>
+        {payInPerson && (
+          <span className="mt-0.5 block text-xs text-muted">Pay in person</span>
+        )}
+      </dd>
+    </div>
   );
 }
 

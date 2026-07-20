@@ -44,6 +44,21 @@ export const FIELDS = {
     userId: "User Id", // added — Supabase auth user id
     cancelRequestedAt: "Cancel Requested At", // added
     refundStatus: "Refund Status", // added — Not required | Pending | Completed
+    depositAmount: "Deposit Amount", // added — currency, major units
+    protectionPackage: "Protection Package", // added — single line text
+    mileageOption: "Mileage Option", // added — single line text
+  },
+  extra: {
+    slug: "Slug", // matches site catalogue id
+    name: "Name",
+    price: "Price", // currency, major units (per day or flat)
+    chargeType: "Charge Type", // Flat | Per day
+  },
+  bookingExtra: {
+    booking: "Booking", // link → Bookings
+    extra: "Extra", // link → Extras
+    quantity: "Quantity",
+    lineTotal: "Line Total", // currency, major units
   },
 } as const;
 
