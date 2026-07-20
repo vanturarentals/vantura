@@ -1,12 +1,12 @@
 "use client";
 
 import { useEffect, useState, type FormEvent } from "react";
-import { createClient } from "@/lib/supabase/client";
+import { createAuthClient, createClient } from "@/lib/supabase/client";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { getAppUrlClient } from "@/lib/app-url";
 import { isEmailVerified } from "@/lib/user-profile";
 
-type Step = "email" | "password" | "verify";
+type Step = "email" | "login" | "signup" | "verify";
 
 interface Props {
   open: boolean;
@@ -26,6 +26,7 @@ export default function AuthModal({
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [passwordConfirm, setPasswordConfirm] = useState("");
+  const [rememberMe, setRememberMe] = useState(true);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -35,6 +36,7 @@ export default function AuthModal({
       setStep("email");
       setPassword("");
       setPasswordConfirm("");
+      setRememberMe(true);
       setMessage(null);
       setError(null);
       setBusy(false);
@@ -61,7 +63,19 @@ export default function AuthModal({
     window.location.assign(target);
   }
 
-  function onEmailContinue(e: FormEvent) {
+  function resetPasswordFields() {
+    setPassword("");
+    setPasswordConfirm("");
+  }
+
+  function backToEmail() {
+    setStep("email");
+    resetPasswordFields();
+    setError(null);
+    setMessage(null);
+  }
+
+  async function onEmailContinue(e: FormEvent) {
     e.preventDefault();
     setError(null);
     setMessage(null);
@@ -69,14 +83,88 @@ export default function AuthModal({
       setError("Accounts are not configured yet. You can still book as a guest.");
       return;
     }
-    if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+    const trimmed = email.trim();
+    if (!trimmed || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
       setError("Enter a valid email address.");
       return;
     }
-    setStep("password");
+
+    setBusy(true);
+    try {
+      const res = await fetch("/api/auth/email-status", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: trimmed }),
+      });
+      const data = (await res.json()) as { exists?: boolean; error?: string };
+      if (!res.ok) {
+        throw new Error(data.error ?? "Could not check email.");
+      }
+      resetPasswordFields();
+      setStep(data.exists ? "login" : "signup");
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Could not check email. Please try again.",
+      );
+    } finally {
+      setBusy(false);
+    }
   }
 
-  async function onPasswordSubmit(e: FormEvent) {
+  async function onLoginSubmit(e: FormEvent) {
+    e.preventDefault();
+    setError(null);
+    setMessage(null);
+    if (!configured) {
+      setError("Accounts are not configured yet. You can still book as a guest.");
+      return;
+    }
+    if (password.length < 8) {
+      setError("Password must be at least 8 characters.");
+      return;
+    }
+
+    setBusy(true);
+    try {
+      const supabase = createAuthClient(rememberMe);
+      const trimmed = email.trim();
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: trimmed,
+        password,
+      });
+
+      if (signInError) {
+        if (
+          signInError.message.toLowerCase().includes("email not confirmed") ||
+          signInError.message.toLowerCase().includes("not confirmed")
+        ) {
+          setStep("verify");
+          setMessage(
+            "Please verify your email before signing in. Check your inbox for the link.",
+          );
+          return;
+        }
+        if (
+          signInError.message.toLowerCase().includes("invalid login") ||
+          signInError.message.toLowerCase().includes("invalid credentials")
+        ) {
+          setError("Incorrect password. Try again.");
+          return;
+        }
+        throw signInError;
+      }
+
+      finishSignedIn();
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Could not sign in. Please try again.",
+      );
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function onSignupSubmit(e: FormEvent) {
     e.preventDefault();
     setError(null);
     setMessage(null);
@@ -97,62 +185,26 @@ export default function AuthModal({
     try {
       const supabase = createClient();
       const trimmed = email.trim();
-
-      const { data: signInData, error: signInError } =
-        await supabase.auth.signInWithPassword({
-          email: trimmed,
-          password,
-        });
-
-      if (!signInError && signInData.user) {
-        if (!isEmailVerified(signInData.user)) {
-          setStep("verify");
-          setMessage(
-            "Please verify your email before using your account. Check your inbox for the link.",
-          );
-          return;
-        }
-        finishSignedIn();
-        return;
-      }
-
-      const invalidLogin =
-        signInError?.message?.toLowerCase().includes("invalid login") ||
-        signInError?.message?.toLowerCase().includes("invalid credentials");
-
-      if (!invalidLogin && signInError) {
-        if (
-          signInError.message.toLowerCase().includes("email not confirmed") ||
-          signInError.message.toLowerCase().includes("not confirmed")
-        ) {
-          setStep("verify");
-          setMessage(
-            "Please verify your email before signing in. Check your inbox for the link.",
-          );
-          return;
-        }
-        throw signInError;
-      }
-
-      const { data: signUpData, error: signUpError } =
-        await supabase.auth.signUp({
-          email: trimmed,
-          password,
-          options: { emailRedirectTo: redirectTo },
-        });
+      const { data, error: signUpError } = await supabase.auth.signUp({
+        email: trimmed,
+        password,
+        options: { emailRedirectTo: redirectTo },
+      });
 
       if (signUpError) {
         if (
           signUpError.message.toLowerCase().includes("already") ||
           signUpError.message.toLowerCase().includes("registered")
         ) {
-          setError("Incorrect password for this email. Try again.");
+          setStep("login");
+          resetPasswordFields();
+          setError("This email is already registered. Enter your password to log in.");
           return;
         }
         throw signUpError;
       }
 
-      if (signUpData.session && signUpData.user && isEmailVerified(signUpData.user)) {
+      if (data.session && data.user && isEmailVerified(data.user)) {
         finishSignedIn();
         return;
       }
@@ -163,7 +215,7 @@ export default function AuthModal({
       );
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "Could not sign in. Please try again.",
+        err instanceof Error ? err.message : "Could not create account. Please try again.",
       );
     } finally {
       setBusy(false);
@@ -220,6 +272,22 @@ export default function AuthModal({
     }
   }
 
+  const title =
+    step === "verify"
+      ? "Verify your email"
+      : step === "signup"
+        ? "Create account"
+        : "Log in";
+
+  const subtitle =
+    step === "verify"
+      ? "Verify your email to unlock manage bookings and saved details."
+      : step === "signup"
+        ? "Choose a password for your new account. You'll verify your email next."
+        : step === "login"
+          ? "Enter your password to sign in."
+          : "Access seamless checkouts and easy trip management.";
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <button
@@ -257,15 +325,9 @@ export default function AuthModal({
           id="auth-modal-title"
           className="mt-4 pr-8 text-2xl font-extrabold tracking-tight text-brand"
         >
-          {step === "verify" ? "Verify your email" : "Log in"}
+          {title}
         </h2>
-        <p className="mt-2 text-sm text-muted">
-          {step === "verify"
-            ? "Verify your email to unlock manage bookings and saved details."
-            : step === "password"
-              ? "Enter your password to sign in or create your account."
-              : "Access seamless checkouts and easy trip management."}
-        </p>
+        <p className="mt-2 text-sm text-muted">{subtitle}</p>
 
         {step === "email" && (
           <form onSubmit={onEmailContinue} className="mt-6 space-y-3">
@@ -281,24 +343,58 @@ export default function AuthModal({
               />
             </label>
             <button type="submit" disabled={busy} className="btn-primary w-full py-3">
-              Continue with email
+              {busy ? "Checking…" : "Continue with email"}
             </button>
           </form>
         )}
 
-        {step === "password" && (
-          <form onSubmit={onPasswordSubmit} className="mt-6 space-y-3">
+        {step === "login" && (
+          <form onSubmit={onLoginSubmit} className="mt-6 space-y-3">
             <p className="text-sm text-foreground">
               <span className="text-muted">Signing in as </span>
               <span className="font-semibold">{email.trim()}</span>
               <button
                 type="button"
-                onClick={() => {
-                  setStep("email");
-                  setPassword("");
-                  setPasswordConfirm("");
-                  setError(null);
-                }}
+                onClick={backToEmail}
+                className="ml-2 text-sm font-semibold text-brand hover:underline"
+              >
+                Change
+              </button>
+            </p>
+            <label className="block space-y-1.5">
+              <span className="field-label">Password</span>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                autoComplete="current-password"
+                minLength={8}
+                className="field"
+              />
+            </label>
+            <label className="flex cursor-pointer items-center gap-2 text-sm text-foreground">
+              <input
+                type="checkbox"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+                className="accent-brand"
+              />
+              Remember me
+            </label>
+            <button type="submit" disabled={busy} className="btn-primary w-full py-3">
+              {busy ? "Please wait…" : "Log in"}
+            </button>
+          </form>
+        )}
+
+        {step === "signup" && (
+          <form onSubmit={onSignupSubmit} className="mt-6 space-y-3">
+            <p className="text-sm text-foreground">
+              <span className="text-muted">Creating account for </span>
+              <span className="font-semibold">{email.trim()}</span>
+              <button
+                type="button"
+                onClick={backToEmail}
                 className="ml-2 text-sm font-semibold text-brand hover:underline"
               >
                 Change
@@ -327,11 +423,10 @@ export default function AuthModal({
               />
             </label>
             <p className="text-xs text-muted">
-              New here? We&apos;ll create your account. You&apos;ll need to
-              verify your email before managing bookings.
+              You&apos;ll need to verify your email before managing bookings.
             </p>
             <button type="submit" disabled={busy} className="btn-primary w-full py-3">
-              {busy ? "Please wait…" : "Log in"}
+              {busy ? "Please wait…" : "Create account"}
             </button>
           </form>
         )}
@@ -353,13 +448,7 @@ export default function AuthModal({
             </button>
             <button
               type="button"
-              onClick={() => {
-                setStep("email");
-                setPassword("");
-                setPasswordConfirm("");
-                setError(null);
-                setMessage(null);
-              }}
+              onClick={backToEmail}
               className="btn-ghost w-full"
             >
               Use a different email
