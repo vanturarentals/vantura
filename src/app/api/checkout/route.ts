@@ -170,15 +170,15 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error("[checkout] error:", error);
-    const detail =
+    const raw =
       error instanceof Error ? error.message : "Could not start checkout.";
+    // Never echo Stripe key material back to the browser.
+    const detail = raw.replace(
+      /Invalid API Key provided:.*/i,
+      "Invalid Stripe API key — check STRIPE_SECRET_KEY in .env.local / Vercel.",
+    );
     return NextResponse.json(
-      {
-        error:
-          process.env.NODE_ENV === "development"
-            ? `Could not start checkout: ${detail}`
-            : "Could not start checkout.",
-      },
+      { error: `Could not start checkout. ${detail}` },
       { status: 500 },
     );
   }

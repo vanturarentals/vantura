@@ -200,6 +200,7 @@ export async function createPendingBooking(
     reference = generateBookingReference();
   }
 
+  // Core fields only — Deposit Amount / Protection / Mileage may not exist in Airtable yet.
   const fields: Record<string, unknown> = {
     [FIELDS.booking.reference]: reference,
     [FIELDS.booking.customerName]: input.customerName,
@@ -213,50 +214,64 @@ export async function createPendingBooking(
     [FIELDS.booking.totalAmount]: input.totalAmountMinor / 100,
     [FIELDS.booking.currency]: input.currency,
   };
-  if (input.depositAmountMinor != null) {
-    fields[FIELDS.booking.depositAmount] = input.depositAmountMinor / 100;
-  }
-  if (input.protectionName) {
-    fields[FIELDS.booking.protectionPackage] = input.protectionName;
-  }
-  if (input.mileageName) {
-    fields[FIELDS.booking.mileageOption] = input.mileageName;
-  }
   if (input.userId) {
     fields[FIELDS.booking.userId] = input.userId;
   }
 
-  // Newer optional columns (Deposit Amount, etc.) may not exist yet — strip and retry.
-  const record = await createRecordOmittingUnknownFields(
-    airtableConfig.bookingsTable,
-    fields,
-  );
+  const record = await createRecord(airtableConfig.bookingsTable, fields);
+
+  const optional: Record<string, unknown> = {};
+  if (input.depositAmountMinor != null) {
+    optional[FIELDS.booking.depositAmount] = input.depositAmountMinor / 100;
+  }
+  if (input.protectionName) {
+    optional[FIELDS.booking.protectionPackage] = input.protectionName;
+  }
+  if (input.mileageName) {
+    optional[FIELDS.booking.mileageOption] = input.mileageName;
+  }
+  if (Object.keys(optional).length > 0) {
+    try {
+      await updateRecordOmittingUnknownFields(
+        airtableConfig.bookingsTable,
+        record.id,
+        optional,
+      );
+    } catch (error) {
+      console.warn(
+        "[bookings] Optional deposit/protection/mileage fields not saved:",
+        error instanceof Error ? error.message : error,
+      );
+    }
+  }
 
   return mapBooking(record);
 }
 
-/** Create a record; on UNKNOWN_FIELD_NAME strip that field and retry. */
-async function createRecordOmittingUnknownFields(
+/** PATCH fields; skip unknown Airtable columns (escaped quotes in API errors). */
+async function updateRecordOmittingUnknownFields(
   table: string,
+  id: string,
   fields: Record<string, unknown>,
-): Promise<AirtableRecord> {
+): Promise<void> {
   const remaining = { ...fields };
   for (let attempt = 0; attempt < 6; attempt++) {
+    if (Object.keys(remaining).length === 0) return;
     try {
-      return await createRecord(table, remaining);
+      await updateRecord(table, id, remaining);
+      return;
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
-      const match = message.match(/Unknown field name: "([^"]+)"/i);
+      const match = message.match(/Unknown field name: \\?"([^"\\]+)\\?"/i);
       if (!match) throw error;
       const unknown = match[1];
       if (!(unknown in remaining)) throw error;
       console.warn(
-        `[bookings] Airtable field "${unknown}" missing on ${table}; continuing without it.`,
+        `[bookings] Airtable field "${unknown}" missing on ${table}; skipping.`,
       );
       delete remaining[unknown];
     }
   }
-  return createRecord(table, remaining);
 }
 
 export async function attachStripeSession(
