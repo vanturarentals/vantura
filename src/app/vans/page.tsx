@@ -5,10 +5,9 @@ import VanResults from "@/components/VanResults";
 
 export default function VansPage() {
   return (
-    <div className="flex min-h-screen flex-col bg-surface">
+    <div className="flex min-h-screen flex-col bg-white">
       <Header />
-      <main className="mx-auto w-full max-w-6xl flex-1 px-5 py-8">
-        <h1 className="mb-6 text-2xl font-bold text-brand">Available vans</h1>
+      <main className="mx-auto w-full max-w-7xl flex-1 px-5 py-8 sm:py-10">
         <Suspense fallback={<p className="text-muted">Loading…</p>}>
           <VanResults />
         </Suspense>

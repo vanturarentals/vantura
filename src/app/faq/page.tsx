@@ -57,6 +57,27 @@ const FAQS: FaqItem[] = [
   },
 ];
 
+function FaqChevron() {
+  return (
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 20 20"
+      fill="none"
+      aria-hidden
+      className="shrink-0 text-muted transition-transform duration-200 group-open:rotate-180"
+    >
+      <path
+        d="M5 7.5L10 12.5L15 7.5"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 export default function FaqPage() {
   return (
     <div className="flex min-h-screen flex-col bg-surface">
@@ -69,17 +90,22 @@ export default function FaqPage() {
 
         <div className="panel mt-10 divide-y divide-border overflow-hidden">
           {FAQS.map((item) => (
-            <div key={item.q} className="px-5 py-5">
-              <h2 className="text-lg font-semibold text-foreground">{item.q}</h2>
-              {item.a && <p className="mt-2 text-muted">{item.a}</p>}
-              {item.bullets && (
-                <ul className="mt-2 list-disc space-y-1 pl-5 text-muted">
-                  {item.bullets.map((line) => (
-                    <li key={line}>{line}</li>
-                  ))}
-                </ul>
-              )}
-            </div>
+            <details key={item.q} className="group">
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-5 [&::-webkit-details-marker]:hidden">
+                <h2 className="text-lg font-semibold text-foreground">{item.q}</h2>
+                <FaqChevron />
+              </summary>
+              <div className="border-t border-border px-5 pb-5 pt-4">
+                {item.a && <p className="text-muted">{item.a}</p>}
+                {item.bullets && (
+                  <ul className="mt-2 list-disc space-y-1 pl-5 text-muted">
+                    {item.bullets.map((line) => (
+                      <li key={line}>{line}</li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </details>
           ))}
         </div>
 
