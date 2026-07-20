@@ -2,22 +2,58 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import Link from "next/link";
 
-const PLACEHOLDER_FAQS = [
+type FaqItem = {
+  q: string;
+  a?: string;
+  bullets?: string[];
+};
+
+const FAQS: FaqItem[] = [
   {
     q: "What do I need to hire a van?",
-    a: "A full UK driving licence, proof of address, and a debit/credit card in the driver’s name. Drivers must be 21 or over.",
+    a: "You'll need:",
+    bullets: [
+      "A valid UK driving licence",
+      "Proof of address (dated within the last 3 months)",
+      "A debit or credit card in the driver's name",
+      "Any additional documents required for insurance verification",
+    ],
   },
   {
-    q: "What is the minimum driver age?",
-    a: "Drivers must be 21 or over.",
+    q: "Is insurance included?",
+    a: "Yes, our vans are insured for eligible drivers. A standard insurance excess applies, and optional excess reduction may be available depending on your booking.",
   },
   {
-    q: "Can I pick up and drop off at any time?",
-    a: "Yes — pick-ups and returns are available 24/7, 7 days a week.",
+    q: "Can someone else drive the van?",
+    a: "Yes, additional drivers can be added to your booking, provided they meet our age, licence and insurance requirements. All additional drivers must be approved before driving the vehicle.",
   },
   {
-    q: "What is your fuel and mileage policy?",
-    a: "Placeholder — we’ll publish the full fuel and mileage policy here shortly.",
+    q: "What happens if the van breaks down?",
+    a: "All of our vans come with breakdown assistance. If you experience a mechanical problem, contact our emergency number immediately and we'll arrange assistance as quickly as possible.",
+  },
+  {
+    q: "What is your fuel policy?",
+    a: "Your van will be supplied with fuel and should be returned with the same fuel level. If it's returned with less fuel, a refuelling charge may apply.",
+  },
+  {
+    q: "Is there a mileage limit?",
+    a: "Mileage allowances depend on the rental package you've booked. Any applicable limits will be confirmed before your rental begins.",
+  },
+  {
+    q: "What happens if I return the van late?",
+    a: "Please let us know as soon as possible if you're running late. Late returns may incur additional rental charges depending on the length of the delay.",
+  },
+  {
+    q: "What happens if I damage the van?",
+    a: "If the van is damaged during your rental, contact us immediately. We'll guide you through the next steps and assess the damage in accordance with your rental agreement and insurance policy.",
+  },
+  {
+    q: "Can I cancel my booking?",
+    a: "Yes. Cancellation terms depend on how much notice is given before your booking. Please refer to our cancellation policy or contact us for assistance.",
+  },
+  {
+    q: "Do you offer 24/7 support?",
+    a: "Yes. If you experience an emergency or breakdown during your rental, our team is available to help you.",
   },
 ];
 
@@ -32,10 +68,17 @@ export default function FaqPage() {
         </p>
 
         <div className="panel mt-10 divide-y divide-border overflow-hidden">
-          {PLACEHOLDER_FAQS.map((item) => (
+          {FAQS.map((item) => (
             <div key={item.q} className="px-5 py-5">
               <h2 className="text-lg font-semibold text-foreground">{item.q}</h2>
-              <p className="mt-2 text-muted">{item.a}</p>
+              {item.a && <p className="mt-2 text-muted">{item.a}</p>}
+              {item.bullets && (
+                <ul className="mt-2 list-disc space-y-1 pl-5 text-muted">
+                  {item.bullets.map((line) => (
+                    <li key={line}>{line}</li>
+                  ))}
+                </ul>
+              )}
             </div>
           ))}
         </div>
