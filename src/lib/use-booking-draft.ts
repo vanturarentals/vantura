@@ -52,6 +52,9 @@ function readCachedDraft(): BookingDraft | null {
     } else {
       cachedDraft = { ...cachedDraft, protectionId: "basic" };
     }
+    if (!cachedDraft.mileageId) {
+      cachedDraft = { ...cachedDraft, mileageId: "included_200" };
+    }
     cachedDraft = {
       ...cachedDraft,
       furthestStepIndex: inferFurthestStepIndex(cachedDraft),

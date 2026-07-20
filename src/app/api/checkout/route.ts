@@ -6,6 +6,7 @@ import { attachLicencePhotos, attachStripeSession, createPendingBooking } from "
 import { computeTotalMinor, isValidRange, rentalDays } from "@/lib/pricing";
 import { extrasTotalMinor, getExtra } from "@/lib/extras";
 import { getProtection, protectionTotalMinor } from "@/lib/protections";
+import { getMileageOption, mileageTotalMinor } from "@/lib/mileage";
 import { getCurrentUser } from "@/lib/supabase/server";
 import type { CheckoutRequest } from "@/lib/types";
 
@@ -37,6 +38,7 @@ export async function POST(request: NextRequest) {
     email,
     extras = [],
     protectionId = "basic",
+    mileageId = "included_200",
     licence,
   } = body;
 
@@ -85,9 +87,14 @@ export async function POST(request: NextRequest) {
     if (!protection) {
       return NextResponse.json({ error: "Invalid protection package." }, { status: 400 });
     }
+    const mileage = getMileageOption(mileageId);
+    if (!mileage) {
+      return NextResponse.json({ error: "Invalid mileage option." }, { status: 400 });
+    }
     const extrasTotal = extrasTotalMinor(extras, days);
     const protectionTotal = protectionTotalMinor(protection.id, days);
-    const totalMinor = vanTotal + extrasTotal + protectionTotal;
+    const mileageTotal = mileageTotalMinor(mileage.id, days);
+    const totalMinor = vanTotal + extrasTotal + protectionTotal + mileageTotal;
     const currency = stripeConfig.currency;
 
     const booking = await createPendingBooking({
@@ -120,6 +127,9 @@ export async function POST(request: NextRequest) {
       );
     }
     descriptionParts.push(protection.name);
+    if (mileage.id === "unlimited") {
+      descriptionParts.push(mileage.name);
+    }
 
     const stripe = getStripe();
     const paymentIntent = await stripe.paymentIntents.create({

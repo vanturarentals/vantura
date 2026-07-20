@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { useSearchParams } from "next/navigation";
 import { formatMoney } from "@/lib/pricing";
@@ -15,6 +15,11 @@ import type { BookingDraft } from "@/lib/booking-draft";
 import type { Van } from "@/lib/types";
 import SearchForm from "@/components/SearchForm";
 import { formatShortDateTime } from "@/lib/format-datetime";
+import {
+  getMileageOption,
+  mileageTotalMinor,
+  type MileageId,
+} from "@/lib/mileage";
 
 interface AvailableVan extends Van {
   days: number;
@@ -37,7 +42,7 @@ export default function VanResults() {
   const [editing, setEditing] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [expandedVanId, setExpandedVanId] = useState<string | null>(null);
-  const expandedRef = useRef<HTMLLIElement>(null);
+  const [mileageId, setMileageId] = useState<MileageId>("included_200");
 
   useEffect(() => {
     if (missingParams) return;
@@ -69,6 +74,11 @@ export default function VanResults() {
     return [...list].sort((a, b) => a.dailyRateMinor - b.dailyRateMinor);
   }, [vans, sizes]);
 
+  const expandedVan = useMemo(
+    () => filtered.find((v) => v.id === expandedVanId) ?? null,
+    [filtered, expandedVanId],
+  );
+
   function toggleSize(size: VanSize) {
     setSizes((prev) => {
       const next = new Set(prev);
@@ -78,7 +88,7 @@ export default function VanResults() {
     });
   }
 
-  function selectVan(van: AvailableVan) {
+  function selectVan(van: AvailableVan, mileage: MileageId = "included_200") {
     const draft: BookingDraft = {
       vanId: van.id,
       vanName: van.name,
@@ -92,6 +102,7 @@ export default function VanResults() {
       differentReturn: false,
       extras: [],
       protectionId: "basic",
+      mileageId: mileage,
       furthestStepIndex: 0,
       driver: {
         title: "Mr",
@@ -107,20 +118,37 @@ export default function VanResults() {
   }
 
   function toggleVan(van: AvailableVan) {
-    setExpandedVanId((current) => (current === van.id ? null : van.id));
-    selectVan(van);
+    const opening = expandedVanId !== van.id;
+    setExpandedVanId(opening ? van.id : null);
+    if (opening) {
+      setMileageId("included_200");
+      selectVan(van, "included_200");
+    }
   }
 
   function chooseExtras(van: AvailableVan) {
-    selectVan(van);
+    selectVan(van, mileageId);
     const query = new URLSearchParams({ pickupAt, dropoffAt });
     router.push(`/book/${van.id}/extras?${query.toString()}`);
   }
 
+  function handleMileageChange(van: AvailableVan, next: MileageId) {
+    setMileageId(next);
+    selectVan(van, next);
+  }
+
   useEffect(() => {
-    if (expandedVanId && expandedRef.current) {
-      expandedRef.current.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    if (!expandedVanId) return;
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") setExpandedVanId(null);
     }
+    document.addEventListener("keydown", onKeyDown);
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKeyDown);
+      document.body.style.overflow = prevOverflow;
+    };
   }, [expandedVanId]);
 
   if (missingParams) {
@@ -210,27 +238,41 @@ export default function VanResults() {
 
       <ul className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
         {filtered.map((van, index) => (
-          <Fragment key={van.id}>
-            <li>
-              <VanPreviewCard
-                van={van}
-                topSeller={index === 0}
-                expanded={expandedVanId === van.id}
-                onToggle={() => toggleVan(van)}
-              />
-            </li>
-            {expandedVanId === van.id && (
-              <li ref={expandedRef} className="col-span-1 md:col-span-2 xl:col-span-3">
-                <VanExpandedPanel
-                  van={van}
-                  onClose={() => setExpandedVanId(null)}
-                  onChooseExtras={() => chooseExtras(van)}
-                />
-              </li>
-            )}
-          </Fragment>
+          <li key={van.id}>
+            <VanPreviewCard
+              van={van}
+              topSeller={index === 0}
+              expanded={expandedVanId === van.id}
+              onToggle={() => toggleVan(van)}
+            />
+          </li>
         ))}
       </ul>
+
+      {expandedVan && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
+          <button
+            type="button"
+            aria-label="Close"
+            className="absolute inset-0 cursor-pointer bg-black/50"
+            onClick={() => setExpandedVanId(null)}
+          />
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="van-detail-title"
+            className="relative z-10 w-full max-w-4xl max-h-[min(90vh,820px)] overflow-y-auto"
+          >
+            <VanExpandedPanel
+              van={expandedVan}
+              mileageId={mileageId}
+              onMileageChange={(next) => handleMileageChange(expandedVan, next)}
+              onClose={() => setExpandedVanId(null)}
+              onChooseExtras={() => chooseExtras(expandedVan)}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -317,16 +359,24 @@ function VanPreviewCard({
 
 function VanExpandedPanel({
   van,
+  mileageId,
+  onMileageChange,
   onClose,
   onChooseExtras,
 }: {
   van: AvailableVan;
+  mileageId: MileageId;
+  onMileageChange: (id: MileageId) => void;
   onClose: () => void;
   onChooseExtras: () => void;
 }) {
   const category = inferCategoryLabel(van.name);
   const seats = inferSeats(van.name);
   const size = inferVanSize(van.name);
+  const mileageAddon = mileageTotalMinor(mileageId, van.days);
+  const mileageOption = getMileageOption(mileageId);
+  const dailyWithMileage = van.dailyRateMinor + (mileageOption?.priceMinorPerDay ?? 0);
+  const totalWithMileage = van.totalMinor + mileageAddon;
 
   return (
     <div className="overflow-hidden rounded-2xl bg-white shadow-lg ring-1 ring-black/5">
@@ -345,7 +395,10 @@ function VanExpandedPanel({
           <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/30 to-black/10" />
 
           <div className="relative mt-auto p-5 sm:p-6">
-            <h2 className="text-xl font-extrabold uppercase tracking-tight sm:text-2xl">
+            <h2
+              id="van-detail-title"
+              className="text-xl font-extrabold uppercase tracking-tight sm:text-2xl"
+            >
               {van.name}
             </h2>
             <p className="mt-0.5 text-sm font-medium text-white/90">or similar</p>
@@ -376,7 +429,7 @@ function VanExpandedPanel({
 
         <div className="flex flex-col p-5 sm:p-6">
           <div className="flex items-start justify-between gap-4">
-            <h3 className="text-lg font-bold text-foreground">Your hire</h3>
+            <h3 className="text-lg font-bold text-foreground">Mileage options</h3>
             <button
               type="button"
               onClick={onClose}
@@ -388,27 +441,30 @@ function VanExpandedPanel({
           </div>
 
           <div className="mt-5 flex-1 space-y-4">
-            <HireOption
-              selected
-              title="Standard rate"
-              description="Free cancellation and rebooking within 24 hours."
+            <MileageOption
+              selected={mileageId === "included_200"}
+              title="200 miles included"
+              description="Standard mileage allowance for your hire."
               badge="Included"
+              onSelect={() => onMileageChange("included_200")}
             />
-            <HireOption
-              title="Mileage"
-              description="All miles included in the price."
-              badge="Included"
+            <MileageOption
+              selected={mileageId === "unlimited"}
+              title="Unlimited miles"
+              description="Drive as far as you need with no mileage cap."
+              priceLabel={`${formatMoney(900, van.currency)} / day`}
+              onSelect={() => onMileageChange("unlimited")}
             />
           </div>
 
           <div className="mt-6 flex flex-col gap-4 border-t border-border pt-5 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <p className="text-2xl font-bold text-foreground">
-                {formatMoney(van.dailyRateMinor, van.currency)}
+                {formatMoney(dailyWithMileage, van.currency)}
                 <span className="text-base font-semibold"> /day</span>
               </p>
               <p className="text-sm text-muted">
-                {formatMoney(van.totalMinor, van.currency)} total
+                {formatMoney(totalWithMileage, van.currency)} total
               </p>
             </div>
             <button
@@ -425,21 +481,27 @@ function VanExpandedPanel({
   );
 }
 
-function HireOption({
+function MileageOption({
   title,
   description,
   badge,
+  priceLabel,
   selected = false,
+  onSelect,
 }: {
   title: string;
   description: string;
-  badge: string;
+  badge?: string;
+  priceLabel?: string;
   selected?: boolean;
+  onSelect: () => void;
 }) {
   return (
-    <div
-      className={`rounded-xl border p-4 ${
-        selected ? "border-brand bg-brand/5" : "border-border bg-surface/50"
+    <button
+      type="button"
+      onClick={onSelect}
+      className={`w-full rounded-xl border p-4 text-left transition-colors ${
+        selected ? "border-brand bg-brand/5" : "border-border bg-surface/50 hover:border-brand/40"
       }`}
     >
       <div className="flex items-start gap-3">
@@ -449,21 +511,24 @@ function HireOption({
           }`}
           aria-hidden
         >
-          {selected && (
-            <span className="h-2 w-2 rounded-full bg-white" />
-          )}
+          {selected && <span className="h-2 w-2 rounded-full bg-white" />}
         </span>
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
             <p className="font-semibold text-foreground">{title}</p>
-            <span className="rounded-full bg-brand/10 px-2 py-0.5 text-xs font-semibold text-brand">
-              {badge}
-            </span>
+            {badge && (
+              <span className="rounded-full bg-brand/10 px-2 py-0.5 text-xs font-semibold text-brand">
+                {badge}
+              </span>
+            )}
+            {priceLabel && (
+              <span className="text-sm font-semibold text-foreground">{priceLabel}</span>
+            )}
           </div>
           <p className="mt-1 text-sm text-muted">{description}</p>
         </div>
       </div>
-    </div>
+    </button>
   );
 }
 

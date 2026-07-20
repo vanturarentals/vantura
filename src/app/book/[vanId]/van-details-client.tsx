@@ -54,6 +54,7 @@ export default function VanDetailsClient() {
           differentReturn: false,
           extras: [],
           protectionId: "basic",
+          mileageId: "included_200",
           furthestStepIndex: 0,
           driver: {
             title: "Mr",

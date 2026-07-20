@@ -4,6 +4,7 @@ import Link from "next/link";
 import { formatMoney, rentalDays } from "@/lib/pricing";
 import { extrasTotalMinor, getExtra } from "@/lib/extras";
 import { getProtection, protectionTotalMinor } from "@/lib/protections";
+import { getMileageOption, mileageTotalMinor } from "@/lib/mileage";
 import type { BookingDraft } from "@/lib/booking-draft";
 
 interface Props {
@@ -15,7 +16,8 @@ export default function BookingSummary({ draft }: Props) {
   const vanTotal = draft.dailyRateMinor * days;
   const extrasTotal = extrasTotalMinor(draft.extras, days);
   const protectionTotal = protectionTotalMinor(draft.protectionId ?? "basic", days);
-  const total = vanTotal + extrasTotal + protectionTotal;
+  const mileageTotal = mileageTotalMinor(draft.mileageId ?? "included_200", days);
+  const total = vanTotal + extrasTotal + protectionTotal + mileageTotal;
   const currency = draft.currency || "gbp";
 
   return (
@@ -80,6 +82,18 @@ export default function BookingSummary({ draft }: Props) {
               </div>
             );
           })}
+        {(() => {
+          const mileage = getMileageOption(draft.mileageId ?? "included_200");
+          if (!mileage || mileageTotal === 0) return null;
+          return (
+            <div className="flex justify-between gap-3">
+              <dt className="text-muted">{mileage.name}</dt>
+              <dd className="font-medium">
+                {formatMoney(mileageTotal, currency)}
+              </dd>
+            </div>
+          );
+        })()}
         {(() => {
           const pkg = getProtection(draft.protectionId ?? "basic");
           if (!pkg) return null;

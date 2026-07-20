@@ -9,6 +9,7 @@ import EmbeddedPayment from "@/components/EmbeddedPayment";
 import SignInPrompt from "@/components/SignInPrompt";
 import { getExtra } from "@/lib/extras";
 import { getProtection } from "@/lib/protections";
+import { getMileageOption } from "@/lib/mileage";
 import { useBookingDraft } from "@/lib/use-booking-draft";
 import { useBookingStepGuard } from "@/lib/use-booking-step-guard";
 import { createClient } from "@/lib/supabase/client";
@@ -60,6 +61,7 @@ export default function ReviewPage() {
             phone: draft.driver.phone,
             extras: draft.extras,
             protectionId: draft.protectionId ?? "basic",
+            mileageId: draft.mileageId ?? "included_200",
             licence: draft.licence,
           }),
         });
@@ -112,6 +114,9 @@ export default function ReviewPage() {
   const protection = getProtection(current.protectionId ?? "basic");
   const protectionLabel = protection?.name ?? "Basic";
 
+  const mileage = getMileageOption(current.mileageId ?? "included_200");
+  const mileageLabel = mileage?.name ?? "200 miles included";
+
   function startPayment() {
     setError(null);
     if (!accepted) {
@@ -151,6 +156,14 @@ export default function ReviewPage() {
                   dropoffAt: current.dropoffAt,
                 }).toString()}`}
                 lines={[current.vanName]}
+              />
+              <Section
+                title="Mileage"
+                href={`/vans?${new URLSearchParams({
+                  pickupAt: current.pickupAt,
+                  dropoffAt: current.dropoffAt,
+                }).toString()}`}
+                lines={[mileageLabel]}
               />
               <Section
                 title="Extras"

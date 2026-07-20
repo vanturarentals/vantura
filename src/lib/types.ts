@@ -64,6 +64,7 @@ export interface CheckoutRequest {
   phone?: string;
   extras?: { id: string; quantity: number }[];
   protectionId?: string;
+  mileageId?: string;
   licence?: {
     frontDataUrl: string;
     frontName: string;
