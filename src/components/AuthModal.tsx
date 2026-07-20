@@ -5,8 +5,9 @@ import { createAuthClient, createClient } from "@/lib/supabase/client";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { getAppUrlClient } from "@/lib/app-url";
 import { isEmailVerified } from "@/lib/user-profile";
+import PasswordInput from "@/components/PasswordInput";
 
-type Step = "email" | "login" | "signup" | "verify";
+type Step = "email" | "login" | "signup" | "verify" | "forgot";
 
 interface Props {
   open: boolean;
@@ -56,6 +57,7 @@ export default function AuthModal({
 
   const configured = isSupabaseConfigured();
   const redirectTo = `${getAppUrlClient()}/auth/callback?next=${encodeURIComponent(nextPath)}`;
+  const resetPasswordRedirect = `${getAppUrlClient()}/auth/callback?next=${encodeURIComponent("/login/reset-password")}`;
 
   function finishSignedIn() {
     onClose();
@@ -98,6 +100,14 @@ export default function AuthModal({
       });
       const data = (await res.json()) as { exists?: boolean; error?: string };
       if (!res.ok) {
+        if (res.status === 503) {
+          resetPasswordFields();
+          setStep("login");
+          setMessage(
+            "Enter your password to log in, or switch to create an account if you're new.",
+          );
+          return;
+        }
         throw new Error(data.error ?? "Could not check email.");
       }
       resetPasswordFields();
@@ -247,6 +257,40 @@ export default function AuthModal({
     }
   }
 
+  async function onForgotPasswordSubmit(e: FormEvent) {
+    e.preventDefault();
+    setError(null);
+    setMessage(null);
+    if (!configured) {
+      setError("Accounts are not configured yet. You can still book as a guest.");
+      return;
+    }
+    const trimmed = email.trim();
+    if (!trimmed) {
+      setError("Enter your email address.");
+      return;
+    }
+
+    setBusy(true);
+    try {
+      const supabase = createClient();
+      const { error: resetError } = await supabase.auth.resetPasswordForEmail(
+        trimmed,
+        { redirectTo: resetPasswordRedirect },
+      );
+      if (resetError) throw resetError;
+      setMessage(
+        "If an account exists for this email, we've sent a password reset link.",
+      );
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Could not send reset email.",
+      );
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function continueWithProvider(provider: "google" | "apple") {
     setError(null);
     setMessage(null);
@@ -275,18 +319,22 @@ export default function AuthModal({
   const title =
     step === "verify"
       ? "Verify your email"
-      : step === "signup"
-        ? "Create account"
-        : "Log in";
+      : step === "forgot"
+        ? "Reset password"
+        : step === "signup"
+          ? "Create account"
+          : "Log in";
 
   const subtitle =
     step === "verify"
       ? "Verify your email to unlock manage bookings and saved details."
-      : step === "signup"
-        ? "Choose a password for your new account. You'll verify your email next."
-        : step === "login"
-          ? "Enter your password to sign in."
-          : "Access seamless checkouts and easy trip management.";
+      : step === "forgot"
+        ? "We'll email you a link to choose a new password."
+        : step === "signup"
+          ? "Choose a password for your new account. You'll verify your email next."
+          : step === "login"
+            ? "Enter your password to sign in."
+            : "Access seamless checkouts and easy trip management.";
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -361,28 +409,48 @@ export default function AuthModal({
                 Change
               </button>
             </p>
-            <label className="block space-y-1.5">
-              <span className="field-label">Password</span>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                autoComplete="current-password"
-                minLength={8}
-                className="field"
-              />
-            </label>
-            <label className="flex cursor-pointer items-center gap-2 text-sm text-foreground">
-              <input
-                type="checkbox"
-                checked={rememberMe}
-                onChange={(e) => setRememberMe(e.target.checked)}
-                className="accent-brand"
-              />
-              Remember me
-            </label>
+            <PasswordInput
+              label="Password"
+              value={password}
+              onChange={setPassword}
+              autoComplete="current-password"
+            />
+            <div className="flex items-center justify-between gap-3">
+              <label className="flex cursor-pointer items-center gap-2 text-sm text-foreground">
+                <input
+                  type="checkbox"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                  className="accent-brand"
+                />
+                Remember me
+              </label>
+              <button
+                type="button"
+                onClick={() => {
+                  setStep("forgot");
+                  setError(null);
+                  setMessage(null);
+                }}
+                className="cursor-pointer text-sm font-semibold text-brand hover:underline"
+              >
+                Forgot password?
+              </button>
+            </div>
             <button type="submit" disabled={busy} className="btn-primary w-full py-3">
               {busy ? "Please wait…" : "Log in"}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setStep("signup");
+                resetPasswordFields();
+                setError(null);
+                setMessage(null);
+              }}
+              className="btn-ghost w-full text-sm"
+            >
+              New here? Create account
             </button>
           </form>
         )}
@@ -400,33 +468,80 @@ export default function AuthModal({
                 Change
               </button>
             </p>
-            <label className="block space-y-1.5">
-              <span className="field-label">Password</span>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                autoComplete="new-password"
-                minLength={8}
-                className="field"
-              />
-            </label>
-            <label className="block space-y-1.5">
-              <span className="field-label">Confirm password</span>
-              <input
-                type="password"
-                value={passwordConfirm}
-                onChange={(e) => setPasswordConfirm(e.target.value)}
-                autoComplete="new-password"
-                minLength={8}
-                className="field"
-              />
-            </label>
+            <PasswordInput
+              label="Password"
+              value={password}
+              onChange={setPassword}
+              autoComplete="new-password"
+            />
+            <PasswordInput
+              label="Confirm password"
+              value={passwordConfirm}
+              onChange={setPasswordConfirm}
+              autoComplete="new-password"
+            />
             <p className="text-xs text-muted">
               You&apos;ll need to verify your email before managing bookings.
             </p>
             <button type="submit" disabled={busy} className="btn-primary w-full py-3">
               {busy ? "Please wait…" : "Create account"}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setStep("login");
+                resetPasswordFields();
+                setError(null);
+                setMessage(null);
+              }}
+              className="btn-ghost w-full text-sm"
+            >
+              Already have an account? Log in
+            </button>
+          </form>
+        )}
+
+        {step === "forgot" && (
+          <form onSubmit={onForgotPasswordSubmit} className="mt-6 space-y-3">
+            <p className="text-sm text-foreground">
+              <span className="text-muted">Reset password for </span>
+              <span className="font-semibold">{email.trim() || "your account"}</span>
+              {email.trim() && (
+                <button
+                  type="button"
+                  onClick={backToEmail}
+                  className="ml-2 text-sm font-semibold text-brand hover:underline"
+                >
+                  Change
+                </button>
+              )}
+            </p>
+            {!email.trim() && (
+              <label className="block space-y-1.5">
+                <span className="field-label">Email</span>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="name@mail.com"
+                  autoComplete="email"
+                  className="field"
+                />
+              </label>
+            )}
+            <button type="submit" disabled={busy} className="btn-primary w-full py-3">
+              {busy ? "Sending…" : "Send reset link"}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setStep("login");
+                setError(null);
+                setMessage(null);
+              }}
+              className="btn-ghost w-full text-sm"
+            >
+              ← Back to log in
             </button>
           </form>
         )}
@@ -456,7 +571,7 @@ export default function AuthModal({
           </div>
         )}
 
-        {step !== "verify" && (
+        {step !== "verify" && step !== "forgot" && (
           <>
             <div className="my-5 flex items-center gap-3 text-xs font-medium uppercase tracking-wide text-muted">
               <span className="h-px flex-1 bg-border" />
