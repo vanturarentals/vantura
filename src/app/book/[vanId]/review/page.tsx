@@ -115,7 +115,7 @@ export default function ReviewPage() {
   const protectionLabel = protection?.name ?? "Basic";
 
   const mileage = getMileageOption(current.mileageId ?? "included_200");
-  const mileageLabel = mileage?.name ?? "200 miles included";
+  const mileageLabel = mileage?.name ?? "200 miles";
 
   function startPayment() {
     setError(null);

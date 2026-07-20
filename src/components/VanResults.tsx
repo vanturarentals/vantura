@@ -443,7 +443,7 @@ function VanExpandedPanel({
           <div className="mt-5 flex-1 space-y-4">
             <MileageOption
               selected={mileageId === "included_200"}
-              title="200 miles included"
+              title="200 miles"
               description="Standard mileage allowance for your hire."
               badge="Included"
               onSelect={() => onMileageChange("included_200")}

@@ -13,7 +13,7 @@ export interface MileageOption {
 export const MILEAGE_OPTIONS: MileageOption[] = [
   {
     id: "included_200",
-    name: "200 miles included",
+    name: "200 miles",
     description: "Standard mileage allowance for your hire.",
     priceMinorPerDay: 0,
   },
