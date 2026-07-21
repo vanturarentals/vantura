@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import BookingSteps from "@/components/BookingSteps";
@@ -61,6 +61,13 @@ function DriverForm({ draft }: { draft: BookingDraft }) {
   const [driver, setDriver] = useState(draft.driver);
   const [phoneConfirm, setPhoneConfirm] = useState(draft.driver.phone);
   const [emailLocked, setEmailLocked] = useState(false);
+  const draftRef = useRef(draft);
+  draftRef.current = draft;
+
+  // Persist driver edits after render — never call writeDraft inside setState updaters.
+  useEffect(() => {
+    writeDraft({ ...draftRef.current, driver });
+  }, [driver]);
 
   useEffect(() => {
     if (!isSupabaseConfigured()) return;
@@ -70,20 +77,16 @@ function DriverForm({ draft }: { draft: BookingDraft }) {
       if (!user?.email) return;
       const profile = getUserProfile(user);
       setEmailLocked(true);
-      setDriver((prev) => {
-        const next = {
-          ...prev,
-          email: user.email!,
-          firstName: prev.firstName || profile.firstName,
-          lastName: prev.lastName || profile.lastName,
-          phone: prev.phone || profile.phone,
-        };
-        writeDraft({ ...draft, driver: next });
-        if (profile.phone && !prev.phone) {
-          setPhoneConfirm(profile.phone);
-        }
-        return next;
-      });
+      setDriver((prev) => ({
+        ...prev,
+        email: user.email!,
+        firstName: prev.firstName || profile.firstName,
+        lastName: prev.lastName || profile.lastName,
+        phone: prev.phone || profile.phone,
+      }));
+      if (profile.phone) {
+        setPhoneConfirm((pc) => pc || profile.phone);
+      }
     });
     // Prefill once from the signed-in account.
     // eslint-disable-next-line react-hooks/exhaustive-deps -- draft identity is vanId-scoped
@@ -110,11 +113,7 @@ function DriverForm({ draft }: { draft: BookingDraft }) {
     for (const key of Object.keys(patch)) {
       clearFieldError(key);
     }
-    setDriver((prev) => {
-      const next = { ...prev, ...patch };
-      writeDraft({ ...draft, driver: next });
-      return next;
-    });
+    setDriver((prev) => ({ ...prev, ...patch }));
   }
 
   function onPhoneChange(value: string) {
