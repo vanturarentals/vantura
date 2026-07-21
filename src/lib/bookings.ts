@@ -191,6 +191,8 @@ export interface NewPendingBooking {
   userId?: string | null;
   protectionName?: string;
   mileageName?: string;
+  promoDiscountMinor?: number;
+  firstBookingPromo?: boolean;
 }
 
 export async function createPendingBooking(
@@ -233,6 +235,10 @@ export async function createPendingBooking(
   }
   if (input.mileageName) {
     optional[FIELDS.booking.mileageOption] = input.mileageName;
+  }
+  if (input.firstBookingPromo && input.promoDiscountMinor != null) {
+    optional[FIELDS.booking.firstBookingPromo] = true;
+    optional[FIELDS.booking.promoDiscount] = input.promoDiscountMinor / 100;
   }
   if (Object.keys(optional).length > 0) {
     try {

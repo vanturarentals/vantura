@@ -77,6 +77,8 @@ export const firstBookingPromo = {
   /** Automatically applied to base rental when paying balance in person. */
   autoApplied: true,
   codeRequired: false,
+  /** Must be signed in — guest checkout does not qualify. */
+  requiresAccount: true,
   /** Applies to base van rental only — not deposit, extras, mileage, protection, or fees. */
   appliesTo: "base van rental only",
   endDate: "2026-09-01",

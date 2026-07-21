@@ -6,7 +6,8 @@ import { computeBookingTotals } from "@/lib/booking-totals";
 import { getExtra } from "@/lib/extras";
 import { getProtection } from "@/lib/protections";
 import { getMileageOption, excessMileageLabel } from "@/lib/mileage";
-import { companyConfig } from "@/lib/company";
+import { companyConfig, firstBookingPromo } from "@/lib/company";
+import { useFirstBookingPromo } from "@/lib/use-first-booking-promo";
 import type { BookingDraft } from "@/lib/booking-draft";
 
 interface Props {
@@ -14,7 +15,10 @@ interface Props {
 }
 
 export default function BookingSummary({ draft }: Props) {
-  const totals = computeBookingTotals(draft);
+  const promo = useFirstBookingPromo();
+  const totals = computeBookingTotals(draft, {
+    promoEligible: promo.eligible,
+  });
   const currency = draft.currency || "gbp";
 
   return (
@@ -53,13 +57,57 @@ export default function BookingSummary({ draft }: Props) {
         </div>
       </div>
 
+      {!promo.loading && promo.eligible && (
+        <p className="mt-4 rounded-lg bg-brand/10 px-3 py-2 text-xs font-medium text-brand">
+          {firstBookingPromo.discountPercent}% first booking discount applied to
+          van rental
+        </p>
+      )}
+
+      {!promo.loading && !promo.eligible && promo.reason === "not_signed_in" && (
+        <p className="mt-4 rounded-lg bg-surface px-3 py-2 text-xs text-muted">
+          <Link href="/login" className="font-semibold text-brand underline">
+            Sign in
+          </Link>{" "}
+          to unlock {firstBookingPromo.discountPercent}% off your first van
+          rental.{" "}
+          <Link href="/promotions" className="text-brand underline">
+            Terms
+          </Link>
+        </p>
+      )}
+
       <dl className="mt-4 space-y-2 text-sm">
-        <LineItem
-          label={`Van · ${totals.days} day${totals.days === 1 ? "" : "s"}`}
-          amount={totals.vanTotalMinor}
-          currency={currency}
-          payInPerson
-        />
+        <div className="flex justify-between gap-3">
+          <dt className="text-muted">
+            Van · {totals.days} day{totals.days === 1 ? "" : "s"}
+          </dt>
+          <dd className="text-right">
+            {totals.promoDiscountMinor > 0 ? (
+              <>
+                <span className="block text-xs text-muted line-through">
+                  {formatMoney(totals.vanTotalMinor, currency)}
+                </span>
+                <span className="font-medium text-foreground">
+                  {formatMoney(totals.vanTotalAfterPromoMinor, currency)}
+                </span>
+                <span className="mt-0.5 block text-xs text-brand">
+                  After {firstBookingPromo.discountPercent}% discount
+                </span>
+              </>
+            ) : (
+              <>
+                <span className="font-medium">
+                  {formatMoney(totals.vanTotalMinor, currency)}
+                </span>
+                <span className="mt-0.5 block text-xs text-muted">
+                  Pay in person
+                </span>
+              </>
+            )}
+          </dd>
+        </div>
+
         {draft.extras
           .filter((e) => e.quantity > 0)
           .map((e) => {
@@ -123,12 +171,29 @@ export default function BookingSummary({ draft }: Props) {
           );
         })()}
 
+        {totals.promoDiscountMinor > 0 && (
+          <LineItem
+            label={`First booking discount (${firstBookingPromo.discountPercent}% off van rental)`}
+            amount={-totals.promoDiscountMinor}
+            currency={currency}
+            highlight
+          />
+        )}
+
         <div className="border-t border-border pt-3">
+          {totals.promoDiscountMinor > 0 && (
+            <div className="mb-2 flex justify-between gap-3 text-xs text-muted">
+              <dt>Subtotal before discount</dt>
+              <dd className="line-through">
+                {formatMoney(totals.hireTotalMinor, currency)}
+              </dd>
+            </div>
+          )}
           <div className="flex justify-between gap-3 text-muted">
             <dt>Hire total (inc. VAT)</dt>
             <dd className="text-right">
               <span className="font-medium text-foreground">
-                {formatMoney(totals.hireTotalMinor, currency)}
+                {formatMoney(totals.hireTotalAfterPromoMinor, currency)}
               </span>
               <span className="mt-0.5 block text-xs">Pay in person</span>
             </dd>
@@ -157,15 +222,26 @@ export default function BookingSummary({ draft }: Props) {
 
         <div className="flex justify-between gap-3 text-sm">
           <dt className="text-muted">Balance due in person</dt>
-          <dd className="font-semibold text-foreground">
-            {formatMoney(totals.balanceDueMinor, currency)}
+          <dd className="text-right">
+            <span className="font-semibold text-foreground">
+              {formatMoney(totals.balanceDueMinor, currency)}
+            </span>
+            {totals.promoDiscountMinor > 0 && (
+              <span className="mt-0.5 block text-xs text-brand">
+                Includes {firstBookingPromo.discountPercent}% van rental discount
+              </span>
+            )}
           </dd>
         </div>
       </dl>
 
       <p className="mt-3 text-xs leading-relaxed text-muted">
         Pay a £50 deposit now to reserve your van. The remaining balance is due
-        at pick-up.
+        at pick-up
+        {totals.promoDiscountMinor > 0
+          ? ", after your first-booking discount on van rental"
+          : ""}
+        .
       </p>
 
       <Link
@@ -187,24 +263,30 @@ function LineItem({
   currency,
   payInPerson,
   sublabel,
+  highlight,
 }: {
   label: string;
   amount: number;
   currency: string;
   payInPerson?: boolean;
   sublabel?: string;
+  highlight?: boolean;
 }) {
   return (
     <div className="flex justify-between gap-3">
-      <dt className="text-muted">
+      <dt className={highlight ? "font-medium text-brand" : "text-muted"}>
         {label}
         {sublabel && (
           <span className="mt-0.5 block text-xs">{sublabel}</span>
         )}
       </dt>
       <dd className="text-right">
-        <span className="font-medium">
-          {amount === 0 ? "Included" : formatMoney(amount, currency)}
+        <span className={`font-medium ${highlight ? "text-brand" : ""}`}>
+          {amount === 0
+            ? "Included"
+            : amount < 0
+              ? `−${formatMoney(-amount, currency)}`
+              : formatMoney(amount, currency)}
         </span>
         {payInPerson && amount > 0 && (
           <span className="mt-0.5 block text-xs text-muted">Pay in person</span>

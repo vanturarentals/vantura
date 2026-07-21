@@ -13,6 +13,10 @@ import { getCurrentUser } from "@/lib/supabase/server";
 import type { CheckoutDriver, CheckoutRequest } from "@/lib/types";
 import { yesNoRequired, yearsLicenceHeld } from "@/lib/driver-defaults";
 import { hirePolicy } from "@/lib/company";
+import {
+  evaluateFirstBookingPromo,
+  vanPromoDiscountMinor,
+} from "@/lib/first-booking-promo";
 
 export const dynamic = "force-dynamic";
 
@@ -107,6 +111,15 @@ export async function POST(request: NextRequest) {
     const totalMinor = vanTotal + extrasTotal + protectionTotal + mileageTotal;
     const currency = stripeConfig.currency;
 
+    const promoStatus = await evaluateFirstBookingPromo({
+      userId: user?.id ?? null,
+      email: user?.email ?? email,
+    });
+    const promoDiscountMinor = vanPromoDiscountMinor(
+      vanTotal,
+      promoStatus.eligible,
+    );
+
     const booking = await createPendingBooking({
       vanId: van.id,
       customerName,
@@ -121,6 +134,8 @@ export async function POST(request: NextRequest) {
       protectionName: protection.name,
       mileageName: mileage.name,
       userId: user?.id ?? null,
+      promoDiscountMinor,
+      firstBookingPromo: promoStatus.eligible,
     });
 
     await attachBookingExtras({

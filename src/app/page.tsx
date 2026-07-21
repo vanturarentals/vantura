@@ -52,7 +52,7 @@ export default function Home() {
             <path d="M20.6 13.4 12.4 21.6a2 2 0 0 1-2.8 0L3 15V4h11l6.6 6.6a2 2 0 0 1 0 2.8z" />
             <circle cx="8.5" cy="8.5" r="1.25" fill="currentColor" stroke="none" />
           </svg>
-          {promo.discountPercent}% off your first booking — no code needed
+          {promo.discountPercent}% off your first booking when signed in — no code needed
           <Link
             href="/promotions"
             className="underline decoration-white/50 underline-offset-2 hover:decoration-white"

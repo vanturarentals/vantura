@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import AuthModal from "@/components/AuthModal";
+import { firstBookingPromo } from "@/lib/company";
 
 interface Props {
   /** When true, the user is already signed in — hide the prompt. */
@@ -19,11 +20,12 @@ export default function SignInPrompt({ signedIn }: Props) {
     <>
       <div className="rounded-lg bg-brand-muted/60 p-4">
         <p className="text-sm font-semibold text-brand">
-          Sign in to manage this booking later
+          Sign in to save {firstBookingPromo.discountPercent}% on your first van rental
         </p>
         <p className="mt-1 text-sm text-muted">
-          Create a free account to view history and manage trips in one place.
-          Or continue as a guest — you can still book now.
+          Registered accounts get {firstBookingPromo.discountPercent}% off the
+          base van rental on their first booking. Create a free account to see
+          the discount in your summary — or continue as a guest.
         </p>
         <div className="mt-3 flex flex-wrap gap-3">
           <button

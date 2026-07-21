@@ -1,4 +1,4 @@
-import { companyConfig, hirePolicy, supportEmails } from "@/lib/company";
+import { companyConfig, firstBookingPromo, hirePolicy, supportEmails } from "@/lib/company";
 import { formatMoney } from "@/lib/pricing";
 
 function m(minor: number) {
@@ -39,6 +39,10 @@ export const FAQS: FaqItem[] = [
       `Smart protection: excess ${m(p.protection.smart.excessMinor)} (${m(p.protection.smart.dailyMinor)}/day)`,
       `All-inclusive: no excess for eligible claims (${m(p.protection.allInclusive.dailyMinor)}/day)`,
     ],
+  },
+  {
+    q: "Is there a first booking discount?",
+    a: `Yes — registered accounts get ${firstBookingPromo.discountPercent}% off the base van rental on their first completed hire when booked before ${firstBookingPromo.endDateLabel}. You must be signed in when you book; guest checkout does not qualify. See our promotions page for full terms.`,
   },
   {
     q: "How many miles are included?",

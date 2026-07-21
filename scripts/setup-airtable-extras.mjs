@@ -454,6 +454,15 @@ Error: ${err.message}
     name: "Driver Snapshot",
     type: "multilineText",
   });
+  await ensureField(token, baseId, bookingsFresh, {
+    name: "Promo Discount",
+    type: "currency",
+    options: { precision: 2, symbol: "£" },
+  });
+  await ensureField(token, baseId, bookingsFresh, {
+    name: "First Booking Promo",
+    type: "checkbox",
+  });
 
   // ── Hire Agreements (ops handover paperwork) ─────────────────────────────
   tables = await listTables(token, baseId);

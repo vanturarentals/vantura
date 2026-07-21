@@ -62,6 +62,8 @@ export const FIELDS = {
     medicalConditions: "Medical Conditions", // added
     declarationsConfirmed: "Declarations Confirmed", // added — checkbox
     driverSnapshot: "Driver Snapshot", // added — long text
+    promoDiscount: "Promo Discount", // added — currency, major units
+    firstBookingPromo: "First Booking Promo", // added — checkbox
   },
   extra: {
     slug: "Slug", // matches site catalogue id

@@ -1,4 +1,5 @@
 import LegalPageLayout, { LegalSection } from "@/components/LegalPageLayout";
+import Link from "next/link";
 import { companyConfig, firstBookingPromo } from "@/lib/company";
 
 export const metadata = {
@@ -24,9 +25,18 @@ export default function PromotionsPage() {
             <strong>Valid until:</strong> {promo.endDateLabel}
           </li>
           <li>
-            <strong>How to claim:</strong> No code required. The discount is
-            automatically applied to the <em>base van rental</em> when you pay
-            the remaining balance in person at collection.
+            <strong>Account required:</strong> You must be{" "}
+            <Link href="/login" className="font-semibold text-brand underline">
+              signed in
+            </Link>{" "}
+            to a registered {companyConfig.tradingName} account when you book.
+            Guest checkout does not qualify for this promotion.
+          </li>
+          <li>
+            <strong>How to claim:</strong> No code required. Sign in, complete
+            your first booking, and the discount is automatically applied to the{" "}
+            <em>base van rental</em> on the balance you pay in person at
+            collection.
           </li>
           <li>
             <strong>What it covers:</strong> Base van rental only. Does not
@@ -35,9 +45,10 @@ export default function PromotionsPage() {
             charges, fuel, damage, fines, or any other fees.
           </li>
           <li>
-            <strong>Eligibility:</strong> One use per customer / household.
-            Available on standard daily hires unless we state otherwise. We may
-            withdraw or amend this offer at any time.
+            <strong>Eligibility:</strong> One use per registered account on
+            your first completed hire only. Available on standard daily hires
+            unless we state otherwise. We may withdraw or amend this offer at
+            any time.
           </li>
           <li>
             <strong>Minimum hire:</strong> Standard minimum hire periods apply
