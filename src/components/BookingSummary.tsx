@@ -5,7 +5,7 @@ import { formatMoney } from "@/lib/pricing";
 import { computeBookingTotals } from "@/lib/booking-totals";
 import { getExtra } from "@/lib/extras";
 import { getProtection } from "@/lib/protections";
-import { getMileageOption } from "@/lib/mileage";
+import { getMileageOption, excessMileageLabel } from "@/lib/mileage";
 import { companyConfig } from "@/lib/company";
 import type { BookingDraft } from "@/lib/booking-draft";
 
@@ -81,14 +81,26 @@ export default function BookingSummary({ draft }: Props) {
           })}
         {(() => {
           const mileage = getMileageOption(draft.mileageId ?? "included_200");
-          if (!mileage || totals.mileageTotalMinor === 0) return null;
+          if (!mileage) return null;
           return (
-            <LineItem
-              label={mileage.name}
-              amount={totals.mileageTotalMinor}
-              currency={currency}
-              payInPerson
-            />
+            <>
+              <LineItem
+                label={mileage.name}
+                amount={totals.mileageTotalMinor}
+                currency={currency}
+                payInPerson
+                sublabel={
+                  mileage.id === "included_200"
+                    ? "Included allowance"
+                    : undefined
+                }
+              />
+              {mileage.id === "included_200" && (
+                <p className="text-xs text-muted">
+                  Excess mileage: {excessMileageLabel(currency)}
+                </p>
+              )}
+            </>
           );
         })()}
         {(() => {
@@ -174,18 +186,27 @@ function LineItem({
   amount,
   currency,
   payInPerson,
+  sublabel,
 }: {
   label: string;
   amount: number;
   currency: string;
   payInPerson?: boolean;
+  sublabel?: string;
 }) {
   return (
     <div className="flex justify-between gap-3">
-      <dt className="text-muted">{label}</dt>
+      <dt className="text-muted">
+        {label}
+        {sublabel && (
+          <span className="mt-0.5 block text-xs">{sublabel}</span>
+        )}
+      </dt>
       <dd className="text-right">
-        <span className="font-medium">{formatMoney(amount, currency)}</span>
-        {payInPerson && (
+        <span className="font-medium">
+          {amount === 0 ? "Included" : formatMoney(amount, currency)}
+        </span>
+        {payInPerson && amount > 0 && (
           <span className="mt-0.5 block text-xs text-muted">Pay in person</span>
         )}
       </dd>

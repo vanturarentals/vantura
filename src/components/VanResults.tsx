@@ -14,8 +14,10 @@ import { inferVanSize, type VanSize } from "@/lib/van-meta";
 import {
   getMileageOption,
   mileageTotalMinor,
+  excessMileageLabel,
   type MileageId,
 } from "@/lib/mileage";
+import { hirePolicy } from "@/lib/company";
 import type { BookingDraft } from "@/lib/booking-draft";
 import { emptyDriver } from "@/lib/driver-defaults";
 import { writeDraft } from "@/lib/use-booking-draft";
@@ -433,23 +435,27 @@ function VanExpandedPanel({
             currency={van.currency}
           />
 
-          <h3 className="mt-8 text-lg font-bold text-foreground">Mileage options</h3>
+          <h3 className="mt-8 text-lg font-bold text-foreground">Mileage package</h3>
 
           <div className="mt-5 flex-1 space-y-4">
             <MileageOption
               selected={mileageId === "included_200"}
-              title="200 miles"
-              description="Standard mileage allowance for your hire."
+              title="200 Mile Package"
+              description={`${getMileageOption("included_200")?.description ?? "200 miles per hire day."}`}
               badge="Included"
               onSelect={() => onMileageChange("included_200")}
             />
             <MileageOption
               selected={mileageId === "unlimited"}
-              title="Unlimited miles"
-              description="Drive as far as you need with no mileage cap."
-              priceLabel={`${formatMoney(900, van.currency)} / day`}
+              title="Unlimited Mileage"
+              description="Drive without a daily mileage cap."
+              priceLabel={`${formatMoney(hirePolicy.unlimitedMilesPerDayMinor, van.currency)} / day`}
               onSelect={() => onMileageChange("unlimited")}
             />
+            <p className="text-xs text-muted">
+              Excess mileage beyond your allowance: {excessMileageLabel(van.currency)}.
+              Change package on the extras step.
+            </p>
           </div>
 
           <div className="mt-6 flex flex-col gap-4 border-t border-border pt-5 sm:flex-row sm:items-end sm:justify-between">

@@ -68,6 +68,8 @@ export const FIELDS = {
     name: "Name",
     price: "Price", // currency, major units (per day or flat)
     chargeType: "Charge Type", // Flat | Per day
+    description: "Description", // added
+    category: "Category", // added — Equipment | Service
   },
   bookingExtra: {
     booking: "Booking", // link → Bookings

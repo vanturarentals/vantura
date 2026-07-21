@@ -13,22 +13,60 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const EXTRAS = [
   {
-    id: "phone_charger",
-    name: "Phone charger",
-    priceMinor: 1000,
-    chargeType: "Flat",
-  },
-  {
-    id: "second_driver",
-    name: "Second driver",
+    id: "additional_driver",
+    name: "Additional Driver",
+    description: "Add another named driver who meets our eligibility requirements.",
     priceMinor: 1200,
     chargeType: "Per day",
+    category: "Service",
   },
   {
-    id: "pallet_truck",
-    name: "Pallet truck",
+    id: "phone_charger",
+    name: "Phone Charger",
+    description: "In-van USB phone charger for your hire.",
+    priceMinor: 1000,
+    chargeType: "Flat",
+    category: "Equipment",
+  },
+  {
+    id: "pump_truck",
+    name: "Pump Truck",
+    description: "Manual pump truck for loading and unloading pallets.",
     priceMinor: 2000,
     chargeType: "Flat",
+    category: "Equipment",
+  },
+  {
+    id: "ratchet_straps",
+    name: "Ratchet Straps",
+    description: "Heavy-duty ratchet straps to secure your load.",
+    priceMinor: 800,
+    chargeType: "Flat",
+    category: "Equipment",
+  },
+  {
+    id: "moving_blankets",
+    name: "Moving Blankets",
+    description: "Protect furniture and fragile items in transit.",
+    priceMinor: 1200,
+    chargeType: "Flat",
+    category: "Equipment",
+  },
+  {
+    id: "sack_trolley",
+    name: "Sack Trolley",
+    description: "Sturdy sack truck for boxes and appliances.",
+    priceMinor: 1500,
+    chargeType: "Flat",
+    category: "Equipment",
+  },
+  {
+    id: "sat_nav",
+    name: "Sat Nav",
+    description: "Dedicated sat nav unit for the hire period.",
+    priceMinor: 500,
+    chargeType: "Per day",
+    category: "Equipment",
   },
 ];
 
@@ -125,6 +163,8 @@ async function upsertExtra(token, baseId, tableName, item) {
     Name: item.name,
     Price: item.priceMinor / 100,
     "Charge Type": item.chargeType,
+    Description: item.description ?? "",
+    Category: item.category ?? "Equipment",
   };
   if (listed.records?.length) {
     const id = listed.records[0].id;
@@ -241,6 +281,14 @@ Error: ${err.message}
             choices: [{ name: "Flat" }, { name: "Per day" }],
           },
         },
+        { name: "Description", type: "multilineText" },
+        {
+          name: "Category",
+          type: "singleSelect",
+          options: {
+            choices: [{ name: "Equipment" }, { name: "Service" }],
+          },
+        },
       ],
     });
     tables.push(extras);
@@ -261,6 +309,17 @@ Error: ${err.message}
       type: "singleSelect",
       options: {
         choices: [{ name: "Flat" }, { name: "Per day" }],
+      },
+    });
+    await ensureField(token, baseId, extras, {
+      name: "Description",
+      type: "multilineText",
+    });
+    await ensureField(token, baseId, extras, {
+      name: "Category",
+      type: "singleSelect",
+      options: {
+        choices: [{ name: "Equipment" }, { name: "Service" }],
       },
     });
   }

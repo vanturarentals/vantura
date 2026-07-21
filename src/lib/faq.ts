@@ -62,7 +62,7 @@ export const FAQS: FaqItem[] = [
   },
   {
     q: "Can I add another driver?",
-    a: "Yes. Additional drivers must meet our eligibility requirements and be added before they drive. A daily fee applies — select 'Second driver' in the booking extras step.",
+    a: "Yes. Additional drivers must meet our eligibility requirements and be added before they drive. Tick 'Additional Driver' on the extras step — a daily fee applies.",
   },
   {
     q: "Can I pay in cash?",

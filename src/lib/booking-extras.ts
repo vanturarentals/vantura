@@ -15,6 +15,11 @@ const CHARGE_TYPE_TO_AIRTABLE: Record<string, string> = {
   per_day: "Per day",
 };
 
+const CATEGORY_TO_AIRTABLE: Record<string, string> = {
+  equipment: "Equipment",
+  service: "Service",
+};
+
 const slugToRecordId = new Map<string, string>();
 
 function extraLineTotalMinor(
@@ -53,6 +58,9 @@ export async function ensureExtraCatalogRecord(slug: string): Promise<string | n
     [FIELDS.extra.price]: item.priceMinor / 100,
     [FIELDS.extra.chargeType]:
       CHARGE_TYPE_TO_AIRTABLE[item.chargeType] ?? item.chargeType,
+    [FIELDS.extra.description]: item.description,
+    [FIELDS.extra.category]:
+      CATEGORY_TO_AIRTABLE[item.category] ?? item.category,
   });
   slugToRecordId.set(slug, created.id);
   return created.id;
@@ -73,6 +81,9 @@ export async function syncExtrasCatalog(): Promise<number> {
       [FIELDS.extra.price]: item.priceMinor / 100,
       [FIELDS.extra.chargeType]:
         CHARGE_TYPE_TO_AIRTABLE[item.chargeType] ?? item.chargeType,
+      [FIELDS.extra.description]: item.description,
+      [FIELDS.extra.category]:
+        CATEGORY_TO_AIRTABLE[item.category] ?? item.category,
     };
     if (existing.length) {
       await updateRecord(airtableConfig.extrasTable, existing[0].id, fields);

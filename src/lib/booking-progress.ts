@@ -3,7 +3,7 @@
 import type { BookingDraft } from "@/lib/booking-draft";
 
 export const BOOKING_STEPS = [
-  { slug: "extras", label: "Extras" },
+  { slug: "extras", label: "Extras & mileage" },
   { slug: "protection", label: "Protection" },
   { slug: "driver", label: "Driver" },
   { slug: "licence", label: "Licence" },

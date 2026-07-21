@@ -52,6 +52,11 @@ export default function Footer() {
               <p className="field-label uppercase tracking-wide">Help</p>
               <ul className="mt-2 space-y-2 font-medium text-muted">
                 <li>
+                  <Link href="/van-hire" className="hover:text-brand">
+                    Van hire locations
+                  </Link>
+                </li>
+                <li>
                   <Link href="/faq" className="hover:text-brand">
                     FAQ
                   </Link>
