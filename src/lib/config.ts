@@ -64,7 +64,7 @@ export const emailConfig = {
   },
   /** Inbox that receives “new booking” alerts (your team Gmail is fine). */
   get notifyAddress() {
-    return optional("BOOKING_NOTIFY_EMAIL", "vanturarentals@gmail.com");
+    return optional("BOOKING_NOTIFY_EMAIL", "bookings@vanturarentals.com");
   },
   get isConfigured() {
     return Boolean(this.apiKey && this.fromAddress);

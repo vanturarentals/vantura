@@ -4,22 +4,21 @@ import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { useSearchParams } from "next/navigation";
 import { formatMoney } from "@/lib/pricing";
-import {
-  inferCategoryLabel,
-  inferSeats,
-  inferVanSize,
-  type VanSize,
-} from "@/lib/van-meta";
-import { writeDraft } from "@/lib/use-booking-draft";
-import type { BookingDraft } from "@/lib/booking-draft";
-import type { Van } from "@/lib/types";
-import SearchForm from "@/components/SearchForm";
 import { formatShortDateTime } from "@/lib/format-datetime";
+import { getVanSpecs } from "@/lib/van-catalog";
+import { vanSpecsShort } from "@/components/VanSpecsList";
+import VanSpecsList from "@/components/VanSpecsList";
+import SearchForm from "@/components/SearchForm";
+import type { Van } from "@/lib/types";
+import { inferVanSize, type VanSize } from "@/lib/van-meta";
 import {
   getMileageOption,
   mileageTotalMinor,
   type MileageId,
 } from "@/lib/mileage";
+import type { BookingDraft } from "@/lib/booking-draft";
+import { emptyDriver } from "@/lib/driver-defaults";
+import { writeDraft } from "@/lib/use-booking-draft";
 
 interface AvailableVan extends Van {
   days: number;
@@ -104,15 +103,7 @@ export default function VanResults() {
       protectionId: "basic",
       mileageId: mileage,
       furthestStepIndex: 0,
-      driver: {
-        title: "Mr",
-        firstName: "",
-        lastName: "",
-        email: "",
-        phone: "",
-        dateOfBirth: "",
-        country: "United Kingdom",
-      },
+      driver: emptyDriver(),
     };
     writeDraft(draft);
   }
@@ -288,9 +279,7 @@ function VanPreviewCard({
   expanded: boolean;
   onToggle: () => void;
 }) {
-  const category = inferCategoryLabel(van.name);
-  const seats = inferSeats(van.name);
-  const size = inferVanSize(van.name);
+  const specs = getVanSpecs(van.name);
 
   return (
     <button
@@ -321,12 +310,12 @@ function VanPreviewCard({
             {van.name}
           </h2>
           <p className="mt-0.5 text-sm font-medium text-white/90">or similar</p>
-          <p className="mt-2 text-sm text-white/85">{category}</p>
+          <p className="mt-2 text-sm text-white/85">{specs.category}</p>
 
           <div className="mt-4 flex flex-wrap gap-2">
-            <MetaPill icon="person">{seats}</MetaPill>
-            <MetaPill icon="size">{size}</MetaPill>
-            <MetaPill icon="manual">Manual</MetaPill>
+            <MetaPill icon="person">{specs.seats}</MetaPill>
+            <MetaPill icon="size">{specs.size}</MetaPill>
+            <MetaPill icon="manual">{specs.transmission}</MetaPill>
           </div>
         </div>
 
@@ -343,7 +332,7 @@ function VanPreviewCard({
               <span className="text-base font-semibold"> /day</span>
             </p>
             <p className="text-sm text-white/80">
-              {formatMoney(van.totalMinor, van.currency)} total
+              {formatMoney(van.totalMinor, van.currency)} total · inc. VAT
             </p>
           </div>
           {topSeller && (
@@ -370,9 +359,7 @@ function VanExpandedPanel({
   onClose: () => void;
   onChooseExtras: () => void;
 }) {
-  const category = inferCategoryLabel(van.name);
-  const seats = inferSeats(van.name);
-  const size = inferVanSize(van.name);
+  const specs = getVanSpecs(van.name);
   const mileageAddon = mileageTotalMinor(mileageId, van.days);
   const mileageOption = getMileageOption(mileageId);
   const dailyWithMileage = van.dailyRateMinor + (mileageOption?.priceMinorPerDay ?? 0);
@@ -403,33 +390,33 @@ function VanExpandedPanel({
             </h2>
             <p className="mt-0.5 text-sm font-medium text-white/90">or similar</p>
             <p className="mt-1 text-sm text-white/80">
-              {category} · Manual
+              {specs.category} · {vanSpecsShort(specs)}
             </p>
 
             <div className="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-sm text-white/95">
               <span className="inline-flex items-center gap-2">
                 <PersonIcon />
-                {seats} seats
+                {specs.seats} seats
               </span>
               <span className="inline-flex items-center gap-2">
                 <VanIcon />
-                {size}
+                {specs.size}
               </span>
               <span className="inline-flex items-center gap-2">
                 <ManualIcon />
-                Manual
+                {specs.transmission}
               </span>
             </div>
             <p className="mt-3 flex items-center gap-2 text-sm text-white/75">
               <LicenceIcon />
-              Minimum driver age: 21
+              Minimum driver age: 21 · {specs.payloadKg} kg payload
             </p>
           </div>
         </div>
 
-        <div className="flex flex-col p-5 sm:p-6">
+        <div className="flex flex-col p-5 sm:p-6 lg:max-h-[min(90vh,820px)] lg:overflow-y-auto">
           <div className="flex items-start justify-between gap-4">
-            <h3 className="text-lg font-bold text-foreground">Mileage options</h3>
+            <h3 className="text-lg font-bold text-foreground">Vehicle details</h3>
             <button
               type="button"
               onClick={onClose}
@@ -439,6 +426,14 @@ function VanExpandedPanel({
               <CloseIcon />
             </button>
           </div>
+
+          <VanSpecsList
+            vanName={van.name}
+            dailyRateMinor={van.dailyRateMinor}
+            currency={van.currency}
+          />
+
+          <h3 className="mt-8 text-lg font-bold text-foreground">Mileage options</h3>
 
           <div className="mt-5 flex-1 space-y-4">
             <MileageOption

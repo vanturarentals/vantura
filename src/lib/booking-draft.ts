@@ -31,7 +31,22 @@ export interface BookingDraft {
     email: string;
     phone: string;
     dateOfBirth: string;
+    /** Country of residence. */
     country: string;
+    occupation: string;
+    licenceCountry: string;
+    licenceValidFrom: string;
+    licenceCategories: string;
+    /** "yes" | "no" | "" */
+    convictions5Years: string;
+    accidents5Years: string;
+    refusedInsurance: string;
+    medicalConditions: string;
+    declaredConvictions: boolean;
+    declaredAccidents: boolean;
+    declaredMedical: boolean;
+    entitledToDriveUk: boolean;
+    notUnderInfluence: boolean;
   };
   /** Compressed data-URL previews of licence photos (front/back). */
   licence?: {

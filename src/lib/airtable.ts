@@ -44,6 +44,8 @@ export const FIELDS = {
     userId: "User Id", // added — Supabase auth user id
     cancelRequestedAt: "Cancel Requested At", // added
     refundStatus: "Refund Status", // added — Not required | Pending | Completed
+    cancelVerifyCode: "Cancel Verify Code", // added — guest cancel OTP
+    cancelVerifyExpires: "Cancel Verify Expires", // added — ISO datetime
     depositAmount: "Deposit Amount", // added — currency, major units
     protectionPackage: "Protection Package", // added — single line text
     mileageOption: "Mileage Option", // added — single line text

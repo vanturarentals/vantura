@@ -198,8 +198,15 @@ export default function ReviewPage() {
                   className="mt-0.5 accent-brand"
                 />
                 <span>
-                  I agree to the hire terms and confirm the driver details are
-                  correct.
+                  I have read and agree to the{" "}
+                  <Link href="/terms" className="font-semibold text-brand underline">
+                    Terms &amp; Conditions
+                  </Link>
+                  ,{" "}
+                  <Link href="/privacy" className="font-semibold text-brand underline">
+                    Privacy Policy
+                  </Link>
+                  , and confirm the driver details are correct.
                 </span>
               </label>
 

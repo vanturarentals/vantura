@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getBookingByReferenceAndEmail } from "@/lib/bookings";
 import { getVanById } from "@/lib/inventory";
+import { canSelfCancelOnline } from "@/lib/support";
 
 export const dynamic = "force-dynamic";
 
@@ -32,6 +33,7 @@ export async function POST(request: NextRequest) {
     const van = booking.vanId ? await getVanById(booking.vanId) : null;
     return NextResponse.json({
       booking: {
+        id: booking.id,
         reference: booking.reference,
         vanName: van?.name ?? "Van",
         startAt: booking.startAt,
@@ -43,6 +45,9 @@ export async function POST(request: NextRequest) {
         customerName: booking.customerName,
         pickupLocation: booking.pickupLocation,
         dropoffLocation: booking.dropoffLocation,
+        canCancelOnline:
+          booking.paymentStatus !== "Cancelled" &&
+          canSelfCancelOnline(booking.startAt),
       },
     });
   } catch (error) {

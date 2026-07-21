@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, type FormEvent } from "react";
+import Link from "next/link";
 import { createAuthClient, createClient } from "@/lib/supabase/client";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { getAppUrlClient } from "@/lib/app-url";
@@ -606,8 +607,15 @@ export default function AuthModal({
         {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
 
         <p className="mt-6 text-center text-xs text-muted">
-          By continuing you agree to our terms. You can always close this and
-          book as a guest.
+          By continuing you agree to our{" "}
+          <Link href="/terms" className="font-medium text-brand underline">
+            Terms
+          </Link>{" "}
+          and{" "}
+          <Link href="/privacy" className="font-medium text-brand underline">
+            Privacy Policy
+          </Link>
+          . You can always close this and book as a guest.
         </p>
       </div>
     </div>

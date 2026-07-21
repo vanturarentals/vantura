@@ -380,3 +380,83 @@ export async function requestBookingCancellation(
     }),
   );
 }
+
+function generateCancelCode(): string {
+  return String(Math.floor(100000 + Math.random() * 900000));
+}
+
+/** Store a 6-digit email verification code for guest cancellation. */
+export async function setGuestCancelVerification(
+  bookingId: string,
+  code: string,
+  expiresAt: string,
+): Promise<void> {
+  await updateRecordOmittingUnknownFields(
+    airtableConfig.bookingsTable,
+    bookingId,
+    {
+      [FIELDS.booking.cancelVerifyCode]: code,
+      [FIELDS.booking.cancelVerifyExpires]: expiresAt,
+    },
+  );
+}
+
+export async function clearGuestCancelVerification(
+  bookingId: string,
+): Promise<void> {
+  await updateRecordOmittingUnknownFields(
+    airtableConfig.bookingsTable,
+    bookingId,
+    {
+      [FIELDS.booking.cancelVerifyCode]: "",
+      [FIELDS.booking.cancelVerifyExpires]: "",
+    },
+  );
+}
+
+export async function verifyGuestCancelCode(
+  bookingId: string,
+  code: string,
+): Promise<boolean> {
+  const record = await getRecord(airtableConfig.bookingsTable, bookingId);
+  const stored = String(record.fields[FIELDS.booking.cancelVerifyCode] ?? "");
+  const expires = String(record.fields[FIELDS.booking.cancelVerifyExpires] ?? "");
+  if (!stored || !expires) return false;
+  if (stored !== code.trim()) return false;
+  return new Date(expires).getTime() > Date.now();
+}
+
+/** Issue a verification code for guest online cancel (15-minute expiry). */
+export async function issueGuestCancelCode(
+  reference: string,
+  email: string,
+): Promise<{ code: string; booking: Booking }> {
+  const booking = await getBookingByReferenceAndEmail(reference, email);
+  if (!booking) throw new Error("Booking not found.");
+  if (booking.paymentStatus === "Cancelled") {
+    throw new Error("This booking is already cancelled.");
+  }
+  if (!canSelfCancelOnline(booking.startAt)) {
+    throw new Error(
+      "Online cancellation is only available when pick-up is at least 48 hours away.",
+    );
+  }
+  const code = generateCancelCode();
+  const expiresAt = new Date(Date.now() + 15 * 60 * 1000).toISOString();
+  await setGuestCancelVerification(booking.id, code, expiresAt);
+  return { code, booking };
+}
+
+export async function requestGuestBookingCancellation(
+  reference: string,
+  email: string,
+  code: string,
+): Promise<Booking> {
+  const booking = await getBookingByReferenceAndEmail(reference, email);
+  if (!booking) throw new Error("Booking not found.");
+  const valid = await verifyGuestCancelCode(booking.id, code);
+  if (!valid) throw new Error("Invalid or expired verification code.");
+  const updated = await requestBookingCancellation(booking.id);
+  await clearGuestCancelVerification(booking.id);
+  return updated;
+}

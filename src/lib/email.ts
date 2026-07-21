@@ -284,6 +284,34 @@ export async function sendBookingCancelledEmail(
   });
 }
 
+/** 6-digit code for guest online cancellation. */
+export async function sendGuestCancelCodeEmail(
+  booking: Booking,
+  code: string,
+): Promise<boolean> {
+  const reference = booking.reference
+    ? formatBookingReference(booking.reference)
+    : booking.id;
+  const first = booking.customerName.trim().split(/\s+/)[0] || "there";
+
+  return sendEmail({
+    to: booking.email,
+    subject: `Cancellation code — ${reference}`,
+    html: layout(
+      "Verify your cancellation",
+      `
+      <p style="margin:0 0 14px;font-size:15px;line-height:1.55;">
+        Hi ${escapeHtml(first)}, use this code to cancel booking <strong>${escapeHtml(reference)}</strong> online:
+      </p>
+      <p style="margin:0 0 18px;font-size:28px;font-weight:700;letter-spacing:0.2em;font-family:ui-monospace,monospace;color:#1a3932;">${escapeHtml(code)}</p>
+      <p style="margin:0;font-size:14px;line-height:1.55;color:#6b726e;">
+        This code expires in 15 minutes. If you did not request this, contact us immediately.
+      </p>
+    `,
+    ),
+  });
+}
+
 /** Contact form → team inbox (reply goes to the customer). */
 export async function sendContactEnquiryEmail(input: {
   fromEmail: string;

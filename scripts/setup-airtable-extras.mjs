@@ -209,6 +209,15 @@ Error: ${err.message}
     name: "Mileage Option",
     type: "singleLineText",
   });
+  await ensureField(token, baseId, bookings, {
+    name: "Cancel Verify Code",
+    type: "singleLineText",
+  });
+  await ensureField(token, baseId, bookings, {
+    name: "Cancel Verify Expires",
+    type: "dateTime",
+    options: { dateFormat: { name: "iso" }, timeFormat: { name: "24hour" }, timeZone: "client" },
+  });
 
   // ── Extras catalogue ─────────────────────────────────────────────────────
   let extras = byName("Extras");

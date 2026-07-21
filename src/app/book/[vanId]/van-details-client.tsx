@@ -7,6 +7,7 @@ import BookingSteps from "@/components/BookingSteps";
 import { formatMoney, rentalDays } from "@/lib/pricing";
 import { useBookingDraft, writeDraft } from "@/lib/use-booking-draft";
 import type { BookingDraft } from "@/lib/booking-draft";
+import { emptyDriver } from "@/lib/driver-defaults";
 import { inferCategoryLabel, inferSeats, inferVanSize } from "@/lib/van-meta";
 import type { Van } from "@/lib/types";
 
@@ -56,15 +57,7 @@ export default function VanDetailsClient() {
           protectionId: "basic",
           mileageId: "included_200",
           furthestStepIndex: 0,
-          driver: {
-            title: "Mr",
-            firstName: "",
-            lastName: "",
-            email: "",
-            phone: "",
-            dateOfBirth: "",
-            country: "United Kingdom",
-          },
+          driver: emptyDriver(),
         };
         writeDraft(next);
       })

@@ -1,36 +1,42 @@
+import Link from "next/link";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import SearchForm from "@/components/SearchForm";
+import { companyConfig, firstBookingPromo } from "@/lib/company";
+import { vanPricingSummary } from "@/lib/van-catalog";
 
 const TRUST = [
   {
     title: "Quality vans",
-    body: "to get the job done",
+    body: "Well-maintained fleet for work and moves",
     icon: "van" as const,
   },
   {
-    title: "Transparent pricing",
-    body: "No hidden fees",
+    title: "Clear pricing",
+    body: "See your full breakdown before you pay",
     icon: "tag" as const,
   },
   {
     title: "Flexible hire",
-    body: "Available 24/7",
+    body: "Book online, collect when it suits you",
     icon: "clock" as const,
   },
   {
-    title: "Trusted locally",
-    body: "Rated excellent",
+    title: "London-based support",
+    body: "Friendly team, 9 am–5 pm weekdays",
     icon: "pin" as const,
   },
 ];
 
 export default function Home() {
+  const promo = firstBookingPromo;
+  const pricing = vanPricingSummary("gbp");
+
   return (
     <div className="flex min-h-screen flex-col bg-white">
       <Header />
       <div className="bg-brand px-5 py-2.5 text-center">
-        <p className="inline-flex items-center justify-center gap-2 text-sm font-semibold tracking-wide text-white">
+        <p className="inline-flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-sm font-semibold tracking-wide text-white">
           <svg
             width="16"
             height="16"
@@ -46,7 +52,14 @@ export default function Home() {
             <path d="M20.6 13.4 12.4 21.6a2 2 0 0 1-2.8 0L3 15V4h11l6.6 6.6a2 2 0 0 1 0 2.8z" />
             <circle cx="8.5" cy="8.5" r="1.25" fill="currentColor" stroke="none" />
           </svg>
-          20% off your first booking
+          {promo.discountPercent}% off your first booking — no code needed
+          <Link
+            href="/promotions"
+            className="underline decoration-white/50 underline-offset-2 hover:decoration-white"
+          >
+            Terms
+          </Link>
+          <span className="text-white/70">· ends {promo.endDateLabel}</span>
         </p>
       </div>
 
@@ -65,7 +78,11 @@ export default function Home() {
                 Driven to deliver.
               </h1>
               <p className="mt-4 max-w-xl text-lg font-medium text-white/90 sm:text-xl">
-                Flexible van hire across the UK for moving, work and weekends.
+                Collect from {companyConfig.collectionArea} and drive anywhere in
+                mainland Great Britain.
+              </p>
+              <p className="mt-2 text-sm font-medium text-white/75">
+                All prices include VAT · {companyConfig.tradingName}
               </p>
             </div>
           </div>
@@ -97,7 +114,48 @@ export default function Home() {
         </div>
       </section>
 
+      <section className="border-t border-border bg-white px-5 py-10">
+        <div className="mx-auto max-w-6xl">
+          <h2 className="text-center text-xl font-bold text-foreground sm:text-2xl">
+            Transparent pricing
+          </h2>
+          <p className="mx-auto mt-2 max-w-xl text-center text-sm text-muted">
+            All prices include VAT. Pay a {pricing.deposit} deposit online — balance
+            due at collection from {companyConfig.collectionArea}.
+          </p>
+          <dl className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-4">
+            <PriceTile label="From" value={`${pricing.dailyFrom} / day`} />
+            <PriceTile label="Deposit" value={pricing.deposit} />
+            <PriceTile label="Excess (Basic)" value={pricing.excessBasic} />
+            <PriceTile
+              label="Mileage"
+              value={`${pricing.milesIncluded} miles/day`}
+            />
+          </dl>
+          <p className="mt-6 text-center text-sm text-muted">
+            <Link href="/driver-requirements" className="font-semibold text-brand underline">
+              Driver requirements
+            </Link>
+            {" · "}
+            <Link href="/terms" className="font-semibold text-brand underline">
+              Full terms
+            </Link>
+          </p>
+        </div>
+      </section>
+
       <Footer />
+    </div>
+  );
+}
+
+function PriceTile({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-xl border border-border bg-surface px-4 py-4 text-center">
+      <dt className="text-xs font-semibold uppercase tracking-wide text-muted">
+        {label}
+      </dt>
+      <dd className="mt-1 text-base font-bold text-brand">{value}</dd>
     </div>
   );
 }

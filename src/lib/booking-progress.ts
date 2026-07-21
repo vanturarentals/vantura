@@ -27,7 +27,19 @@ export function inferFurthestStepIndex(draft: BookingDraft): number {
     draft.driver.lastName &&
     draft.driver.email &&
     draft.driver.phone &&
-    draft.driver.dateOfBirth
+    draft.driver.dateOfBirth &&
+    draft.driver.occupation &&
+    draft.driver.licenceValidFrom &&
+    draft.driver.licenceCategories &&
+    draft.driver.convictions5Years &&
+    draft.driver.accidents5Years &&
+    draft.driver.refusedInsurance &&
+    draft.driver.medicalConditions &&
+    draft.driver.declaredConvictions &&
+    draft.driver.declaredAccidents &&
+    draft.driver.declaredMedical &&
+    draft.driver.entitledToDriveUk &&
+    draft.driver.notUnderInfluence
   ) {
     return bookingStepIndex("licence");
   }

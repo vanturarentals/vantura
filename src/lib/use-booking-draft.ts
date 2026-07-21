@@ -5,6 +5,7 @@ import {
   saveDraft as persistDraft,
   type BookingDraft,
 } from "@/lib/booking-draft";
+import { normalizeDriver } from "@/lib/driver-defaults";
 import { normalizeProtectionId } from "@/lib/protections";
 import { inferFurthestStepIndex } from "@/lib/booking-progress";
 
@@ -58,6 +59,7 @@ function readCachedDraft(): BookingDraft | null {
     cachedDraft = {
       ...cachedDraft,
       furthestStepIndex: inferFurthestStepIndex(cachedDraft),
+      driver: normalizeDriver(cachedDraft.driver),
     };
   } catch {
     cachedDraft = null;
