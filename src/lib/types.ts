@@ -52,6 +52,8 @@ export interface Booking {
   refundStatus: RefundStatus | null;
   /** Airtable record creation time — used to expire unpaid holds. */
   createdTime: string;
+  customerPhone: string;
+  driverSnapshot: string;
 }
 
 /** Payload the browser sends to start a booking. */
@@ -64,6 +66,7 @@ export interface CheckoutRequest {
   customerName: string;
   email: string;
   phone?: string;
+  driver?: CheckoutDriver;
   extras?: { id: string; quantity: number }[];
   protectionId?: string;
   mileageId?: string;
@@ -73,4 +76,28 @@ export interface CheckoutRequest {
     backDataUrl: string;
     backName: string;
   };
+}
+
+/** Expanded driver profile from the booking flow. */
+export interface CheckoutDriver {
+  title: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  dateOfBirth: string;
+  country: string;
+  occupation: string;
+  licenceCountry: string;
+  licenceValidFrom: string;
+  licenceCategories: string;
+  convictions5Years: string;
+  accidents5Years: string;
+  refusedInsurance: string;
+  medicalConditions: string;
+  declaredConvictions: boolean;
+  declaredAccidents: boolean;
+  declaredMedical: boolean;
+  entitledToDriveUk: boolean;
+  notUnderInfluence: boolean;
 }

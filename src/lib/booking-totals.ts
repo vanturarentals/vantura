@@ -5,6 +5,7 @@ import { extrasTotalMinor } from "@/lib/extras";
 import { mileageTotalMinor } from "@/lib/mileage";
 import { protectionTotalMinor } from "@/lib/protections";
 import { rentalDays } from "./pricing";
+import { splitVatFromGross } from "./vat";
 
 /** £50 reservation deposit charged online today. */
 export const DEPOSIT_MINOR = 5000;
@@ -16,6 +17,8 @@ export interface BookingTotals {
   protectionTotalMinor: number;
   mileageTotalMinor: number;
   hireTotalMinor: number;
+  netTotalMinor: number;
+  vatTotalMinor: number;
   depositMinor: number;
   balanceDueMinor: number;
 }
@@ -34,6 +37,7 @@ export function computeBookingTotals(draft: BookingDraft): BookingTotals {
   );
   const hireTotalMinor =
     vanTotalMinor + extrasTotal + protectionTotal + mileageTotal;
+  const { netMinor, vatMinor } = splitVatFromGross(hireTotalMinor);
   const depositMinor = DEPOSIT_MINOR;
   const balanceDueMinor = Math.max(0, hireTotalMinor - depositMinor);
 
@@ -44,6 +48,8 @@ export function computeBookingTotals(draft: BookingDraft): BookingTotals {
     protectionTotalMinor: protectionTotal,
     mileageTotalMinor: mileageTotal,
     hireTotalMinor,
+    netTotalMinor: netMinor,
+    vatTotalMinor: vatMinor,
     depositMinor,
     balanceDueMinor,
   };

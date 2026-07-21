@@ -6,6 +6,7 @@ import { computeBookingTotals } from "@/lib/booking-totals";
 import { getExtra } from "@/lib/extras";
 import { getProtection } from "@/lib/protections";
 import { getMileageOption } from "@/lib/mileage";
+import { companyConfig } from "@/lib/company";
 import type { BookingDraft } from "@/lib/booking-draft";
 
 interface Props {
@@ -94,18 +95,25 @@ export default function BookingSummary({ draft }: Props) {
           const pkg = getProtection(draft.protectionId ?? "basic");
           if (!pkg) return null;
           return (
-            <LineItem
-              label={pkg.name}
-              amount={totals.protectionTotalMinor}
-              currency={currency}
-              payInPerson
-            />
+            <>
+              <LineItem
+                label={pkg.name}
+                amount={totals.protectionTotalMinor}
+                currency={currency}
+                payInPerson
+              />
+              {pkg.excessMinor != null && pkg.excessMinor > 0 && (
+                <p className="text-xs text-muted">
+                  Insurance excess: {formatMoney(pkg.excessMinor, currency)}
+                </p>
+              )}
+            </>
           );
         })()}
 
         <div className="border-t border-border pt-3">
           <div className="flex justify-between gap-3 text-muted">
-            <dt>Hire total</dt>
+            <dt>Hire total (inc. VAT)</dt>
             <dd className="text-right">
               <span className="font-medium text-foreground">
                 {formatMoney(totals.hireTotalMinor, currency)}
@@ -113,6 +121,17 @@ export default function BookingSummary({ draft }: Props) {
               <span className="mt-0.5 block text-xs">Pay in person</span>
             </dd>
           </div>
+          {companyConfig.vatRegistered && totals.vatTotalMinor > 0 && (
+            <div className="mt-2 flex justify-between gap-3 text-xs text-muted">
+              <dt>
+                Includes VAT
+                {companyConfig.vatNumber !== "[VAT number]"
+                  ? ` (${companyConfig.vatNumber})`
+                  : ""}
+              </dt>
+              <dd>{formatMoney(totals.vatTotalMinor, currency)}</dd>
+            </div>
+          )}
         </div>
 
         <div className="flex justify-between gap-3 rounded-lg bg-brand/5 px-3 py-2.5">

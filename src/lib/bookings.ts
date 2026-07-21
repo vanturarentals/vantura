@@ -11,8 +11,10 @@ import {
 } from "./airtable";
 import { airtableConfig } from "./config";
 import type { Booking, PaymentStatus, RefundStatus } from "./types";
+import type { CheckoutDriver } from "./types";
 import { generateBookingReference } from "./booking-reference";
 import { canSelfCancelOnline } from "./support";
+import { driverFieldsForAirtable } from "./driver-details";
 
 /** How long an unpaid (Pending) booking holds a van before it's released. */
 const HOLD_MINUTES = 30;
@@ -67,6 +69,8 @@ function mapBooking(record: AirtableRecord): Booking {
         ? (refundRaw as RefundStatus)
         : null,
     createdTime: record.createdTime,
+    customerPhone: String(f[FIELDS.booking.customerPhone] ?? ""),
+    driverSnapshot: String(f[FIELDS.booking.driverSnapshot] ?? ""),
   };
 }
 
@@ -325,6 +329,33 @@ export async function attachLicencePhotos(
     contentType: back.contentType,
     base64: back.base64,
   });
+}
+
+/** Persist expanded driver profile on the booking (optional Airtable columns). */
+export async function attachDriverDetails(
+  bookingId: string,
+  driver: CheckoutDriver,
+): Promise<void> {
+  const fields = driverFieldsForAirtable(driver, {
+    phone: FIELDS.booking.customerPhone,
+    dateOfBirth: FIELDS.booking.dateOfBirth,
+    country: FIELDS.booking.countryOfResidence,
+    occupation: FIELDS.booking.occupation,
+    licenceCountry: FIELDS.booking.licenceCountry,
+    licenceValidFrom: FIELDS.booking.licenceValidFrom,
+    licenceCategories: FIELDS.booking.licenceCategories,
+    convictions5Years: FIELDS.booking.convictions5Years,
+    accidents5Years: FIELDS.booking.accidents5Years,
+    refusedInsurance: FIELDS.booking.refusedInsurance,
+    medicalConditions: FIELDS.booking.medicalConditions,
+    declarationsConfirmed: FIELDS.booking.declarationsConfirmed,
+    driverSnapshot: FIELDS.booking.driverSnapshot,
+  });
+  await updateRecordOmittingUnknownFields(
+    airtableConfig.bookingsTable,
+    bookingId,
+    fields,
+  );
 }
 
 export async function setPaymentStatus(

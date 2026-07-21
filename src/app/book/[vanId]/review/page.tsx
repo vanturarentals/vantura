@@ -59,6 +59,7 @@ export default function ReviewPage() {
             customerName,
             email: draft.driver.email,
             phone: draft.driver.phone,
+            driver: draft.driver,
             extras: draft.extras,
             protectionId: draft.protectionId ?? "basic",
             mileageId: draft.mileageId ?? "included_200",

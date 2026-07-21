@@ -5,6 +5,7 @@ import {
   sendBookingConfirmationEmail,
   sendNewBookingNotifyEmail,
 } from "@/lib/email";
+import { ensureHireAgreementForBooking } from "@/lib/hire-agreements";
 
 /**
  * Mark a booking Paid after a successful Stripe payment, then email customer + team.
@@ -46,6 +47,7 @@ export async function confirmPaidBooking(
   }
 
   const confirmed = await setPaymentStatus(booking.id, "Paid");
+  await ensureHireAgreementForBooking(confirmed.id);
   const van = confirmed.vanId ? await getVanById(confirmed.vanId) : null;
   const vanName = van?.name ?? "Your van";
 

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { stripeConfig } from "@/lib/config";
 import { getStripe } from "@/lib/stripe";
 import { getVanById, isVanAvailable } from "@/lib/inventory";
-import { attachLicencePhotos, attachStripeSession, createPendingBooking } from "@/lib/bookings";
+import { attachLicencePhotos, attachStripeSession, attachDriverDetails, createPendingBooking } from "@/lib/bookings";
 import { attachBookingExtras } from "@/lib/booking-extras";
 import { DEPOSIT_MINOR } from "@/lib/booking-totals";
 import { computeTotalMinor, isValidRange, rentalDays } from "@/lib/pricing";
@@ -10,7 +10,9 @@ import { extrasTotalMinor, getExtra } from "@/lib/extras";
 import { getProtection, protectionTotalMinor } from "@/lib/protections";
 import { getMileageOption, mileageTotalMinor } from "@/lib/mileage";
 import { getCurrentUser } from "@/lib/supabase/server";
-import type { CheckoutRequest } from "@/lib/types";
+import type { CheckoutDriver, CheckoutRequest } from "@/lib/types";
+import { yesNoRequired, yearsLicenceHeld } from "@/lib/driver-defaults";
+import { hirePolicy } from "@/lib/company";
 
 export const dynamic = "force-dynamic";
 
@@ -38,10 +40,12 @@ export async function POST(request: NextRequest) {
     endAt,
     customerName,
     email,
+    phone,
     extras = [],
     protectionId = "basic",
     mileageId = "included_200",
     licence,
+    driver,
   } = body;
 
   if (!vanId || !startAt || !endAt || !customerName || !email) {
@@ -62,6 +66,10 @@ export async function POST(request: NextRequest) {
       { error: "Driving licence photos are required." },
       { status: 400 },
     );
+  }
+  const driverError = validateCheckoutDriver(driver, phone);
+  if (driverError) {
+    return NextResponse.json({ error: driverError }, { status: 400 });
   }
 
   // Optional — guests book without an account.
@@ -129,6 +137,17 @@ export async function POST(request: NextRequest) {
       backName: licence.backName || "licence-back.jpg",
     });
 
+    if (driver) {
+      try {
+        await attachDriverDetails(booking.id, driver);
+      } catch (error) {
+        console.warn(
+          "[checkout] Driver details not saved:",
+          error instanceof Error ? error.message : error,
+        );
+      }
+    }
+
     const descriptionParts = [`${van.name} · ${formatDays(days)}`];
     for (const q of extras) {
       if (q.quantity <= 0) continue;
@@ -186,4 +205,49 @@ export async function POST(request: NextRequest) {
 
 function formatDays(days: number): string {
   return `${days} day${days === 1 ? "" : "s"}`;
+}
+
+function validateCheckoutDriver(
+  driver: CheckoutDriver | undefined,
+  phone?: string,
+): string | null {
+  if (!driver) {
+    return "Driver details are required.";
+  }
+  if (!driver.firstName || !driver.lastName || !driver.email) {
+    return "Driver name and email are required.";
+  }
+  const driverPhone = digitsOnly(driver.phone || phone || "");
+  if (!/^\d{10,15}$/.test(driverPhone)) {
+    return "A valid UK mobile number is required.";
+  }
+  if (!driver.dateOfBirth || !driver.occupation || !driver.licenceValidFrom) {
+    return "Complete all driver eligibility fields.";
+  }
+  if (
+    !yesNoRequired(driver.convictions5Years) ||
+    !yesNoRequired(driver.accidents5Years) ||
+    !yesNoRequired(driver.refusedInsurance) ||
+    !yesNoRequired(driver.medicalConditions)
+  ) {
+    return "Answer all driver eligibility questions.";
+  }
+  const held = yearsLicenceHeld(driver.licenceValidFrom);
+  if (held === null || held < hirePolicy.minLicenceYears) {
+    return `You must have held a licence for at least ${hirePolicy.minLicenceYears} year.`;
+  }
+  if (
+    !driver.declaredConvictions ||
+    !driver.declaredAccidents ||
+    !driver.declaredMedical ||
+    !driver.entitledToDriveUk ||
+    !driver.notUnderInfluence
+  ) {
+    return "Confirm all insurance declarations before checkout.";
+  }
+  return null;
+}
+
+function digitsOnly(value: string): string {
+  return value.replace(/\D/g, "");
 }

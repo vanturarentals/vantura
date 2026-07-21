@@ -49,6 +49,19 @@ export const FIELDS = {
     depositAmount: "Deposit Amount", // added — currency, major units
     protectionPackage: "Protection Package", // added — single line text
     mileageOption: "Mileage Option", // added — single line text
+    customerPhone: "Customer Phone", // added
+    dateOfBirth: "Date of Birth", // added — date
+    countryOfResidence: "Country of Residence", // added
+    occupation: "Occupation", // added
+    licenceCountry: "Licence Country", // added
+    licenceValidFrom: "Licence Valid From", // added — date
+    licenceCategories: "Licence Categories", // added
+    convictions5Years: "Convictions 5 Years", // added — Yes/No
+    accidents5Years: "Accidents 5 Years", // added
+    refusedInsurance: "Refused Insurance", // added
+    medicalConditions: "Medical Conditions", // added
+    declarationsConfirmed: "Declarations Confirmed", // added — checkbox
+    driverSnapshot: "Driver Snapshot", // added — long text
   },
   extra: {
     slug: "Slug", // matches site catalogue id
@@ -61,6 +74,23 @@ export const FIELDS = {
     extra: "Extra", // link → Extras
     quantity: "Quantity",
     lineTotal: "Line Total", // currency, major units
+  },
+  hireAgreement: {
+    booking: "Booking", // link → Bookings
+    status: "Status", // Pre-hire | At collection | On hire | Returned | Closed
+    driverSnapshot: "Driver Snapshot", // long text
+    collectionMileage: "Collection Mileage", // number
+    collectionFuel: "Collection Fuel", // single select
+    collectionDamageNotes: "Collection Damage Notes", // long text
+    collectionSignedAt: "Collection Signed At", // datetime
+    collectionStaff: "Collection Staff", // single line text
+    returnMileage: "Return Mileage", // number
+    returnFuel: "Return Fuel", // single select
+    returnDamageNotes: "Return Damage Notes", // long text
+    additionalCharges: "Additional Charges", // currency
+    returnSignedAt: "Return Signed At", // datetime
+    returnStaff: "Return Staff", // single line text
+    notes: "Notes", // long text
   },
 } as const;
 

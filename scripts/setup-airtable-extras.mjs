@@ -1,6 +1,6 @@
 /**
  * Create Airtable Extras + Booking Extras schema and seed catalogue rows.
- * Also adds Deposit Amount / Protection Package / Mileage Option on Bookings.
+ * Also adds Bookings driver profile fields, cancel OTP, and Hire Agreements.
  *
  * Usage: node scripts/setup-airtable-extras.mjs
  * Requires AIRTABLE_TOKEN (with schema.bases:write + data.records:write) + AIRTABLE_BASE_ID
@@ -333,11 +333,243 @@ Error: ${err.message}
     await upsertExtra(token, baseId, "Extras", item);
   }
 
+  // ── Driver profile fields on Bookings ───────────────────────────────────
+  console.log("\nDriver fields on Bookings");
+  const yesNoSelect = {
+    type: "singleSelect",
+    options: { choices: [{ name: "Yes" }, { name: "No" }] },
+  };
+  const dateField = {
+    type: "date",
+    options: { dateFormat: { name: "iso" } },
+  };
+  await ensureField(token, baseId, bookingsFresh, {
+    name: "Customer Phone",
+    type: "phoneNumber",
+  });
+  await ensureField(token, baseId, bookingsFresh, {
+    name: "Date of Birth",
+    ...dateField,
+  });
+  await ensureField(token, baseId, bookingsFresh, {
+    name: "Country of Residence",
+    type: "singleLineText",
+  });
+  await ensureField(token, baseId, bookingsFresh, {
+    name: "Occupation",
+    type: "singleLineText",
+  });
+  await ensureField(token, baseId, bookingsFresh, {
+    name: "Licence Country",
+    type: "singleLineText",
+  });
+  await ensureField(token, baseId, bookingsFresh, {
+    name: "Licence Valid From",
+    ...dateField,
+  });
+  await ensureField(token, baseId, bookingsFresh, {
+    name: "Licence Categories",
+    type: "singleLineText",
+  });
+  await ensureField(token, baseId, bookingsFresh, {
+    name: "Convictions 5 Years",
+    ...yesNoSelect,
+  });
+  await ensureField(token, baseId, bookingsFresh, {
+    name: "Accidents 5 Years",
+    ...yesNoSelect,
+  });
+  await ensureField(token, baseId, bookingsFresh, {
+    name: "Refused Insurance",
+    ...yesNoSelect,
+  });
+  await ensureField(token, baseId, bookingsFresh, {
+    name: "Medical Conditions",
+    ...yesNoSelect,
+  });
+  await ensureField(token, baseId, bookingsFresh, {
+    name: "Declarations Confirmed",
+    type: "checkbox",
+  });
+  await ensureField(token, baseId, bookingsFresh, {
+    name: "Driver Snapshot",
+    type: "multilineText",
+  });
+
+  // ── Hire Agreements (ops handover paperwork) ─────────────────────────────
+  tables = await listTables(token, baseId);
+  const bookingsForHire = byName("Bookings");
+  let hireAgreements = byName("Hire Agreements");
+  const fuelChoices = [
+    { name: "Full" },
+    { name: "3/4" },
+    { name: "1/2" },
+    { name: "1/4" },
+    { name: "Empty" },
+  ];
+  const statusChoices = [
+    { name: "Pre-hire" },
+    { name: "At collection" },
+    { name: "On hire" },
+    { name: "Returned" },
+    { name: "Closed" },
+  ];
+  if (!hireAgreements) {
+    console.log("\nCreating Hire Agreements table…");
+    hireAgreements = await createTable(token, baseId, {
+      name: "Hire Agreements",
+      description:
+        "Vehicle collection and return inspection — linked to each paid booking",
+      fields: [
+        {
+          name: "Booking",
+          type: "multipleRecordLinks",
+          options: { linkedTableId: bookingsForHire.id },
+        },
+        {
+          name: "Status",
+          type: "singleSelect",
+          options: { choices: statusChoices },
+        },
+        { name: "Driver Snapshot", type: "multilineText" },
+        {
+          name: "Collection Mileage",
+          type: "number",
+          options: { precision: 0 },
+        },
+        {
+          name: "Collection Fuel",
+          type: "singleSelect",
+          options: { choices: fuelChoices },
+        },
+        { name: "Collection Damage Notes", type: "multilineText" },
+        {
+          name: "Collection Signed At",
+          type: "dateTime",
+          options: {
+            dateFormat: { name: "iso" },
+            timeFormat: { name: "24hour" },
+            timeZone: "client",
+          },
+        },
+        { name: "Collection Staff", type: "singleLineText" },
+        {
+          name: "Return Mileage",
+          type: "number",
+          options: { precision: 0 },
+        },
+        {
+          name: "Return Fuel",
+          type: "singleSelect",
+          options: { choices: fuelChoices },
+        },
+        { name: "Return Damage Notes", type: "multilineText" },
+        {
+          name: "Additional Charges",
+          type: "currency",
+          options: { precision: 2, symbol: "£" },
+        },
+        {
+          name: "Return Signed At",
+          type: "dateTime",
+          options: {
+            dateFormat: { name: "iso" },
+            timeFormat: { name: "24hour" },
+            timeZone: "client",
+          },
+        },
+        { name: "Return Staff", type: "singleLineText" },
+        { name: "Notes", type: "multilineText" },
+      ],
+    });
+    console.log(`  + Hire Agreements created (${hireAgreements.id})`);
+  } else {
+    console.log(`\nHire Agreements (${hireAgreements.id})`);
+    await ensureField(token, baseId, hireAgreements, {
+      name: "Booking",
+      type: "multipleRecordLinks",
+      options: { linkedTableId: bookingsForHire.id },
+    });
+    await ensureField(token, baseId, hireAgreements, {
+      name: "Status",
+      type: "singleSelect",
+      options: { choices: statusChoices },
+    });
+    await ensureField(token, baseId, hireAgreements, {
+      name: "Driver Snapshot",
+      type: "multilineText",
+    });
+    await ensureField(token, baseId, hireAgreements, {
+      name: "Collection Mileage",
+      type: "number",
+      options: { precision: 0 },
+    });
+    await ensureField(token, baseId, hireAgreements, {
+      name: "Collection Fuel",
+      type: "singleSelect",
+      options: { choices: fuelChoices },
+    });
+    await ensureField(token, baseId, hireAgreements, {
+      name: "Collection Damage Notes",
+      type: "multilineText",
+    });
+    await ensureField(token, baseId, hireAgreements, {
+      name: "Collection Signed At",
+      type: "dateTime",
+      options: {
+        dateFormat: { name: "iso" },
+        timeFormat: { name: "24hour" },
+        timeZone: "client",
+      },
+    });
+    await ensureField(token, baseId, hireAgreements, {
+      name: "Collection Staff",
+      type: "singleLineText",
+    });
+    await ensureField(token, baseId, hireAgreements, {
+      name: "Return Mileage",
+      type: "number",
+      options: { precision: 0 },
+    });
+    await ensureField(token, baseId, hireAgreements, {
+      name: "Return Fuel",
+      type: "singleSelect",
+      options: { choices: fuelChoices },
+    });
+    await ensureField(token, baseId, hireAgreements, {
+      name: "Return Damage Notes",
+      type: "multilineText",
+    });
+    await ensureField(token, baseId, hireAgreements, {
+      name: "Additional Charges",
+      type: "currency",
+      options: { precision: 2, symbol: "£" },
+    });
+    await ensureField(token, baseId, hireAgreements, {
+      name: "Return Signed At",
+      type: "dateTime",
+      options: {
+        dateFormat: { name: "iso" },
+        timeFormat: { name: "24hour" },
+        timeZone: "client",
+      },
+    });
+    await ensureField(token, baseId, hireAgreements, {
+      name: "Return Staff",
+      type: "singleLineText",
+    });
+    await ensureField(token, baseId, hireAgreements, {
+      name: "Notes",
+      type: "multilineText",
+    });
+  }
+
   console.log(`
 Done.
   • Extras table seeded with ${EXTRAS.length} items
   • Booking Extras will fill automatically on new checkouts
-  • Bookings now has Deposit Amount / Protection Package / Mileage Option
+  • Bookings has deposit, protection, mileage, driver profile, and cancel OTP fields
+  • Hire Agreements table ready for collection/return paperwork
 `);
 }
 

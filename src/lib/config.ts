@@ -40,6 +40,9 @@ export const airtableConfig = {
   get bookingExtrasTable() {
     return optional("AIRTABLE_BOOKING_EXTRAS_TABLE", "Booking Extras");
   },
+  get hireAgreementsTable() {
+    return optional("AIRTABLE_HIRE_AGREEMENTS_TABLE", "Hire Agreements");
+  },
 };
 
 export const stripeConfig = {
