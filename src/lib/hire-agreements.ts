@@ -24,18 +24,26 @@ export type HireAgreementStatus =
 export async function getHireAgreementByBookingId(
   bookingId: string,
 ): Promise<{ id: string; status: HireAgreementStatus } | null> {
-  const formula = `{${FIELDS.hireAgreement.booking}}="${escapeFormulaValue(bookingId)}"`;
-  const records = await listRecords(airtableConfig.hireAgreementsTable, {
-    filterByFormula: formula,
-    maxRecords: "1",
-  });
-  if (!records.length) return null;
-  const f = records[0].fields;
-  const status = String(f[FIELDS.hireAgreement.status] ?? "Pre-hire");
-  return {
-    id: records[0].id,
-    status: status as HireAgreementStatus,
-  };
+  try {
+    const formula = `{${FIELDS.hireAgreement.booking}}="${escapeFormulaValue(bookingId)}"`;
+    const records = await listRecords(airtableConfig.hireAgreementsTable, {
+      filterByFormula: formula,
+      maxRecords: "1",
+    });
+    if (!records.length) return null;
+    const f = records[0].fields;
+    const status = String(f[FIELDS.hireAgreement.status] ?? "Pre-hire");
+    return {
+      id: records[0].id,
+      status: status as HireAgreementStatus,
+    };
+  } catch (error) {
+    console.warn(
+      "[hire-agreements] lookup failed (table missing or no access?):",
+      error instanceof Error ? error.message : error,
+    );
+    return null;
+  }
 }
 
 /**
@@ -64,6 +72,7 @@ export async function ensureHireAgreementForBooking(
 
   try {
     const record = await createRecord(airtableConfig.hireAgreementsTable, {
+      Agreement: `Hire ${booking.reference ?? booking.id}`,
       [FIELDS.hireAgreement.booking]: [bookingId],
       [FIELDS.hireAgreement.status]: "Pre-hire",
       [FIELDS.hireAgreement.driverSnapshot]: snapshot,
@@ -71,11 +80,22 @@ export async function ensureHireAgreementForBooking(
     });
     return record.id;
   } catch (error) {
-    console.warn(
-      "[hire-agreements] Could not create agreement:",
-      error instanceof Error ? error.message : error,
-    );
-    return null;
+    // Older schemas may not have the "Agreement" primary text field.
+    try {
+      const record = await createRecord(airtableConfig.hireAgreementsTable, {
+        [FIELDS.hireAgreement.booking]: [bookingId],
+        [FIELDS.hireAgreement.status]: "Pre-hire",
+        [FIELDS.hireAgreement.driverSnapshot]: snapshot,
+        [FIELDS.hireAgreement.notes]: `Auto-created from online booking ${booking.reference ?? booking.id}.`,
+      });
+      return record.id;
+    } catch (retryError) {
+      console.warn(
+        "[hire-agreements] Could not create agreement:",
+        retryError instanceof Error ? retryError.message : retryError,
+      );
+      return null;
+    }
   }
 }
 

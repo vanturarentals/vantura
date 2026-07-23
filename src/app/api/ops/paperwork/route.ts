@@ -80,15 +80,20 @@ export async function POST(request: NextRequest) {
   };
 
   try {
-    const agreementId = await completeCollectionPaperwork(booking.id, payload);
-    if (!agreementId) {
-      return NextResponse.json(
-        {
-          error:
-            "Could not save hire agreement. Check Airtable Hire Agreements table.",
-        },
-        { status: 502 },
-      );
+    let agreementId: string | null = null;
+    let airtableWarning: string | null = null;
+    try {
+      agreementId = await completeCollectionPaperwork(booking.id, payload);
+      if (!agreementId) {
+        airtableWarning =
+          "Hire Agreements table missing or inaccessible — PDF will still be emailed. Run: node scripts/setup-airtable-extras.mjs";
+      }
+    } catch (airtableError) {
+      console.error("[ops/paperwork] Airtable save failed:", airtableError);
+      airtableWarning =
+        airtableError instanceof Error
+          ? airtableError.message
+          : "Airtable save failed";
     }
 
     const pdfBytes = await buildPaperworkPdf(payload);
@@ -108,6 +113,7 @@ export async function POST(request: NextRequest) {
       agreementId,
       emails,
       emailConfigured: emailConfig.isConfigured,
+      airtableWarning,
     });
   } catch (error) {
     console.error("[ops/paperwork]", error);

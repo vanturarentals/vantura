@@ -210,6 +210,7 @@ export default function PaperworkForm({ prefill }: Props) {
   const [done, setDone] = useState<{
     emails: { customer: boolean; office: boolean };
     emailConfigured: boolean;
+    airtableWarning: string | null;
   } | null>(null);
 
   const excessLabel = useMemo(
@@ -277,6 +278,7 @@ export default function PaperworkForm({ prefill }: Props) {
         error?: string;
         emails?: { customer: boolean; office: boolean };
         emailConfigured?: boolean;
+        airtableWarning?: string | null;
       };
       if (!res.ok) {
         setError(data.error ?? "Could not save paperwork.");
@@ -285,6 +287,7 @@ export default function PaperworkForm({ prefill }: Props) {
       setDone({
         emails: data.emails ?? { customer: false, office: false },
         emailConfigured: Boolean(data.emailConfigured),
+        airtableWarning: data.airtableWarning ?? null,
       });
     } catch {
       setError("Something went wrong. Please try again.");
@@ -298,12 +301,17 @@ export default function PaperworkForm({ prefill }: Props) {
       <div className="panel-aside space-y-3 p-6 shadow-md">
         <h2 className="text-xl font-bold text-brand">Paperwork complete</h2>
         <p className="text-sm text-muted">
-          Saved to the hire agreement for{" "}
+          Saved for{" "}
           <span className="font-mono font-semibold text-foreground">
             {prefill.reference}
           </span>
           .
         </p>
+        {done.airtableWarning && (
+          <p className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
+            Airtable note: {done.airtableWarning}
+          </p>
+        )}
         {done.emailConfigured ? (
           <ul className="text-sm text-muted">
             <li>
