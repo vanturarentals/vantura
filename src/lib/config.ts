@@ -74,6 +74,18 @@ export const emailConfig = {
   },
 };
 
+/** In-office paperwork /ops routes — set OPS_STAFF_PIN in env. */
+export const opsConfig = {
+  get staffPin() {
+    return optional("OPS_STAFF_PIN");
+  },
+  get isConfigured() {
+    return Boolean(this.staffPin.trim());
+  },
+  /** How long a staff session lasts after entering the PIN. */
+  sessionHours: 12,
+};
+
 /**
  * Absolute base URL of the app, used to build Stripe success/cancel URLs.
  *

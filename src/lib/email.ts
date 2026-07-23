@@ -16,10 +16,11 @@ import type { Booking } from "./types";
 const RESEND_ENDPOINT = "https://api.resend.com/emails";
 
 async function sendEmail(input: {
-  to: string;
+  to: string | string[];
   subject: string;
   html: string;
   replyTo?: string;
+  attachments?: { filename: string; content: Buffer | Uint8Array }[];
 }): Promise<boolean> {
   if (!emailConfig.isConfigured) {
     console.info(
@@ -27,6 +28,8 @@ async function sendEmail(input: {
     );
     return false;
   }
+
+  const to = Array.isArray(input.to) ? input.to : [input.to];
 
   try {
     const res = await fetch(RESEND_ENDPOINT, {
@@ -37,10 +40,18 @@ async function sendEmail(input: {
       },
       body: JSON.stringify({
         from: emailConfig.fromAddress,
-        to: [input.to],
+        to,
         subject: input.subject,
         html: input.html,
         ...(input.replyTo ? { reply_to: input.replyTo } : {}),
+        ...(input.attachments?.length
+          ? {
+              attachments: input.attachments.map((a) => ({
+                filename: a.filename,
+                content: Buffer.from(a.content).toString("base64"),
+              })),
+            }
+          : {}),
       }),
     });
 
@@ -380,4 +391,64 @@ export async function sendContactConfirmationEmail(input: {
     `,
     ),
   });
+}
+
+/** Collection paperwork PDF to customer + office inbox. */
+export async function sendPaperworkEmails(input: {
+  customerEmail: string;
+  customerName: string;
+  bookingReference: string;
+  pdfBytes: Uint8Array;
+}): Promise<{ customer: boolean; office: boolean }> {
+  const ref = input.bookingReference;
+  const filename = `vantura-paperwork-${ref.replace(/[^A-Z0-9-]/gi, "")}.pdf`;
+  const attachment = { filename, content: input.pdfBytes };
+  const first = input.customerName.trim().split(/\s+/)[0] || "there";
+
+  const customerHtml = layout(
+    "Your hire paperwork",
+    `
+      <p style="margin:0 0 14px;font-size:15px;line-height:1.55;">
+        Hi ${escapeHtml(first)}, please find attached a copy of your Vantura Rentals
+        collection paperwork for booking
+        <strong style="font-family:ui-monospace,monospace;">${escapeHtml(ref)}</strong>.
+      </p>
+      <p style="margin:0;font-size:14px;line-height:1.55;color:#6b726e;">
+        Keep this PDF for your records. Safe travels.
+      </p>
+    `,
+  );
+
+  const officeHtml = layout(
+    "Collection paperwork completed",
+    `
+      <p style="margin:0 0 14px;font-size:15px;line-height:1.55;">
+        Collection paperwork for
+        <strong style="font-family:ui-monospace,monospace;">${escapeHtml(ref)}</strong>
+        (${escapeHtml(input.customerName)}) has been signed. PDF attached.
+      </p>
+    `,
+  );
+
+  const officeTo =
+    supportConfig.bookingsEmail?.trim() ||
+    emailConfig.notifyAddress.trim() ||
+    supportConfig.email;
+
+  const [customer, office] = await Promise.all([
+    sendEmail({
+      to: input.customerEmail,
+      subject: `Hire paperwork — ${ref}`,
+      html: customerHtml,
+      attachments: [attachment],
+    }),
+    sendEmail({
+      to: officeTo,
+      subject: `Collection paperwork — ${ref}`,
+      html: officeHtml,
+      attachments: [attachment],
+    }),
+  ]);
+
+  return { customer, office };
 }

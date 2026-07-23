@@ -7,9 +7,12 @@ import {
   createRecord,
   escapeFormulaValue,
   listRecords,
+  updateRecord,
 } from "./airtable";
 import { airtableConfig } from "./config";
 import { getBookingById } from "./bookings";
+import type { PaperworkPayload } from "./paperwork";
+import { fuelForAirtable } from "./paperwork";
 
 export type HireAgreementStatus =
   | "Pre-hire"
@@ -74,4 +77,75 @@ export async function ensureHireAgreementForBooking(
     );
     return null;
   }
+}
+
+/** Persist completed collection paperwork onto the Hire Agreement. */
+export async function completeCollectionPaperwork(
+  bookingId: string,
+  data: PaperworkPayload,
+): Promise<string | null> {
+  const agreementId =
+    (await ensureHireAgreementForBooking(bookingId)) ??
+    (await getHireAgreementByBookingId(bookingId))?.id ??
+    null;
+  if (!agreementId) return null;
+
+  const mileage = Number(data.van.mileage.replace(/[^\d.]/g, ""));
+  const summary = [
+    `Collection paperwork completed ${data.signedAtIso}`,
+    `Staff: ${data.staffName}`,
+    `Primary: ${data.primary.fullName} · ${data.primary.mobile}`,
+    data.hasSecondDriver === "yes" && data.secondDriver
+      ? `Second driver: ${data.secondDriver.fullName}`
+      : "Second driver: no",
+    `Van: ${data.van.makeModel} ${data.van.registration}`,
+    `Mileage: ${data.van.mileage} · Fuel: ${data.van.fuelLevel}`,
+    `Payment: ${data.rental.paymentMethod} · Total: ${data.rental.totalRentalCost}`,
+    "",
+    "PAPERWORK_JSON:",
+    JSON.stringify(data),
+  ].join("\n");
+
+  const fields: Record<string, unknown> = {
+    [FIELDS.hireAgreement.status]: "On hire",
+    [FIELDS.hireAgreement.collectionSignedAt]: data.signedAtIso,
+    [FIELDS.hireAgreement.collectionStaff]: data.staffName.slice(0, 100),
+    [FIELDS.hireAgreement.collectionDamageNotes]:
+      data.condition.existingDamage.trim() || "None noted",
+    [FIELDS.hireAgreement.notes]: summary.slice(0, 90000),
+    [FIELDS.hireAgreement.driverSnapshot]: [
+      data.primary.fullName,
+      data.primary.mobile,
+      data.primary.licenceNumber,
+      data.primary.homeAddress,
+      data.primary.postcode,
+    ]
+      .filter(Boolean)
+      .join("\n"),
+  };
+
+  if (Number.isFinite(mileage)) {
+    fields[FIELDS.hireAgreement.collectionMileage] = mileage;
+  }
+  fields[FIELDS.hireAgreement.collectionFuel] = fuelForAirtable(
+    data.van.fuelLevel,
+  );
+
+  try {
+    await updateRecord(airtableConfig.hireAgreementsTable, agreementId, fields);
+  } catch (error) {
+    // Retry without fuel if the select option isn't recognised yet.
+    delete fields[FIELDS.hireAgreement.collectionFuel];
+    try {
+      await updateRecord(
+        airtableConfig.hireAgreementsTable,
+        agreementId,
+        fields,
+      );
+    } catch (retryError) {
+      console.error("[hire-agreements] update failed:", retryError ?? error);
+      throw retryError;
+    }
+  }
+  return agreementId;
 }

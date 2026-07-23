@@ -43,6 +43,7 @@ server-to-server, never from the browser redirect.
    | `BOOKING_CURRENCY` | ISO currency, lowercase (default `gbp`) |
    | `NEXT_PUBLIC_APP_URL` | App base URL for Stripe redirect URLs |
    | `RESEND_API_KEY` / `BOOKING_FROM_EMAIL` | Optional — enables confirmation emails |
+   | `OPS_STAFF_PIN` | Staff PIN for `/ops/handover` collection paperwork |
 
 3. Run the app:
 
