@@ -102,7 +102,7 @@ export function emptyDriver(): PaperworkDriver {
 function yn(v: boolean | YesNo | undefined): string {
   if (v === true || v === "yes") return "Yes";
   if (v === false || v === "no") return "No";
-  return "—";
+  return "-";
 }
 
 function paymentLabel(m: PaymentMethod): string {
@@ -114,6 +114,15 @@ function paymentLabel(m: PaymentMethod): string {
 function mileageLabel(id: MileageChoice): string {
   if (id === "unlimited") return "Unlimited miles";
   return `${hirePolicy.includedMilesPerDay} miles/day then excess per mile`;
+}
+
+/** Helvetica/WinAnsi cannot encode £ and many Unicode chars — strip/replace. */
+function pdfSafe(text: string): string {
+  return text
+    .replace(/£/g, "GBP ")
+    .replace(/[^\x09\x0A\x0D\x20-\x7E]/g, "?")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 async function dataUrlToPngBytes(dataUrl: string): Promise<Uint8Array | null> {
@@ -147,8 +156,9 @@ export async function buildPaperworkPdf(
     opts?: { bold?: boolean; size?: number; color?: ReturnType<typeof rgb> },
   ) => {
     const size = opts?.size ?? 10;
+    const safe = pdfSafe(text).slice(0, 110);
     ensureSpace(size + 6);
-    page.drawText(text.slice(0, 110), {
+    page.drawText(safe, {
       x: margin,
       y: y - size,
       size,
@@ -239,9 +249,8 @@ export async function buildPaperworkPdf(
   section("VEHICLE CONDITION");
   row("Photos taken", yn(data.condition.photosTaken));
   row("Walk-around completed", yn(data.condition.walkAroundCompleted));
-  const damage = (data.condition.existingDamage || "None noted").replace(
-    /\s+/g,
-    " ",
+  const damage = pdfSafe(
+    (data.condition.existingDamage || "None noted").replace(/\s+/g, " "),
   );
   for (let i = 0; i < damage.length; i += 95) {
     draw(i === 0 ? `Existing damage: ${damage.slice(i, i + 95)}` : damage.slice(i, i + 95), {

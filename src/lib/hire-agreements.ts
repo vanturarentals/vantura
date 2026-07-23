@@ -90,7 +90,11 @@ export async function completeCollectionPaperwork(
     null;
   if (!agreementId) return null;
 
-  const mileage = Number(data.van.mileage.replace(/[^\d.]/g, ""));
+  const mileage = Number(String(data.van.mileage ?? "").replace(/[^\d.]/g, ""));
+  // Never store signature data-URLs in Airtable — they blow the field size limit.
+  const { customerSignatureDataUrl: _c, companySignatureDataUrl: _s, ...rest } =
+    data;
+  const jsonSafe = JSON.stringify(rest);
   const summary = [
     `Collection paperwork completed ${data.signedAtIso}`,
     `Staff: ${data.staffName}`,
@@ -103,16 +107,20 @@ export async function completeCollectionPaperwork(
     `Payment: ${data.rental.paymentMethod} · Total: ${data.rental.totalRentalCost}`,
     "",
     "PAPERWORK_JSON:",
-    JSON.stringify(data),
+    jsonSafe.slice(0, 80_000),
   ].join("\n");
 
-  const fields: Record<string, unknown> = {
+  const signedAt = (() => {
+    const d = new Date(data.signedAtIso);
+    return Number.isNaN(d.getTime()) ? new Date().toISOString() : d.toISOString();
+  })();
+
+  const coreFields: Record<string, unknown> = {
     [FIELDS.hireAgreement.status]: "On hire",
-    [FIELDS.hireAgreement.collectionSignedAt]: data.signedAtIso,
     [FIELDS.hireAgreement.collectionStaff]: data.staffName.slice(0, 100),
     [FIELDS.hireAgreement.collectionDamageNotes]:
-      data.condition.existingDamage.trim() || "None noted",
-    [FIELDS.hireAgreement.notes]: summary.slice(0, 90000),
+      data.condition.existingDamage.trim().slice(0, 5000) || "None noted",
+    [FIELDS.hireAgreement.notes]: summary.slice(0, 95_000),
     [FIELDS.hireAgreement.driverSnapshot]: [
       data.primary.fullName,
       data.primary.mobile,
@@ -121,31 +129,53 @@ export async function completeCollectionPaperwork(
       data.primary.postcode,
     ]
       .filter(Boolean)
-      .join("\n"),
+      .join("\n")
+      .slice(0, 5000),
   };
 
   if (Number.isFinite(mileage)) {
-    fields[FIELDS.hireAgreement.collectionMileage] = mileage;
+    coreFields[FIELDS.hireAgreement.collectionMileage] = mileage;
   }
-  fields[FIELDS.hireAgreement.collectionFuel] = fuelForAirtable(
-    data.van.fuelLevel,
-  );
 
-  try {
-    await updateRecord(airtableConfig.hireAgreementsTable, agreementId, fields);
-  } catch (error) {
-    // Retry without fuel if the select option isn't recognised yet.
-    delete fields[FIELDS.hireAgreement.collectionFuel];
+  // Try richest update first; peel fields if Airtable rejects any of them.
+  const attempts: Record<string, unknown>[] = [
+    {
+      ...coreFields,
+      [FIELDS.hireAgreement.collectionSignedAt]: signedAt,
+      [FIELDS.hireAgreement.collectionFuel]: fuelForAirtable(data.van.fuelLevel),
+    },
+    {
+      ...coreFields,
+      [FIELDS.hireAgreement.collectionSignedAt]: signedAt,
+    },
+    { ...coreFields },
+    {
+      [FIELDS.hireAgreement.status]: "On hire",
+      [FIELDS.hireAgreement.collectionStaff]: data.staffName.slice(0, 100),
+      [FIELDS.hireAgreement.notes]: summary.slice(0, 10_000),
+    },
+  ];
+
+  let lastError: unknown;
+  for (const fields of attempts) {
     try {
       await updateRecord(
         airtableConfig.hireAgreementsTable,
         agreementId,
         fields,
       );
-    } catch (retryError) {
-      console.error("[hire-agreements] update failed:", retryError ?? error);
-      throw retryError;
+      return agreementId;
+    } catch (error) {
+      lastError = error;
+      console.warn(
+        "[hire-agreements] update attempt failed:",
+        error instanceof Error ? error.message : error,
+      );
     }
   }
-  return agreementId;
+
+  console.error("[hire-agreements] all update attempts failed:", lastError);
+  throw lastError instanceof Error
+    ? lastError
+    : new Error("Could not update hire agreement in Airtable.");
 }

@@ -111,8 +111,12 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error("[ops/paperwork]", error);
+    const detail =
+      error instanceof Error ? error.message : "Unknown server error";
     return NextResponse.json(
-      { error: "Could not complete paperwork. Please try again." },
+      {
+        error: `Could not complete paperwork: ${detail}`,
+      },
       { status: 500 },
     );
   }
